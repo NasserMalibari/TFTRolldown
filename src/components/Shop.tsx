@@ -1,8 +1,15 @@
+import { Unit } from "../pages/MainPage";
 
-function Shop() {
+interface ShopProps {
+  buyUnit: (unit: Unit) => void; // Function type
+}
+
+function Shop( {buyUnit}: ShopProps ) {
 
   const champs = ["Singed", "Powder", "Violet", "Lux", "Zyra", "Darius", "Amumu", "Irelia", "Maddie", "Trundle", "Steb", "Morgana", "Vex"];
 
+  // console.log(buyUnit)
+  
   const rollShop = () => {
     
     const returnLst = [];
@@ -14,13 +21,21 @@ function Shop() {
     return returnLst;  
   }
 
-  console.log(rollShop());
+  // console.log(rollShop());
   return (
     <>
       <div className="border flex h-32">
           {/* SHOP */}
           <div className="flex flex-col h-full">
-            <button className="border h-full flex items-center justify-center">Buy XP</button>
+            <button className="border h-full flex items-center justify-center"
+              onClick={() => buyUnit({
+                name: 'Singed',
+                starLevel: 1,
+                position: 1
+              })}
+            >
+              Buy XP
+            </button>
             <button className="border h-full flex items-center justify-center">Reroll</button>
           </div>
           <div>
