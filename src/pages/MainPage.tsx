@@ -1,7 +1,10 @@
 import { useState } from "react";
 import Shop from "../components/Shop";
 import '../css/MainPage.css'
+import React from "react";
 // import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
+// TODO: Meta
+
 
 export type Unit = {
   name: string;
@@ -9,10 +12,132 @@ export type Unit = {
   position: number;
 }
 
+interface ClonePosition {
+  x: number;
+  y: number;
+}
 
 function MainPage() {
 
   const [boardState, setBoardState] = useState<Unit[]>(new Array(28).fill(null));
+  const [hovered, setHovered] = useState<boolean[]>(new Array(28).fill(false));
+
+  // const [isDragging, setIsDragging] = useState<boolean>(false);
+  const isDraggingRef = React.useRef(false);
+  const [clonePosition, setClonePosition] = useState<ClonePosition>({ x: 0, y: 0 });
+  const [clonedGroup, setClonedGroup] = useState<SVGElement  | null>(null);
+  const clonedGroupElementRef = React.useRef<SVGGElement | null>(null);
+
+
+  // console.log(clonePosition);
+  // Handle mousedown event to initiate cloning and dragging
+  // const handleMouseDown = (e: React.MouseEvent): void => {
+
+  //   // const a = (e.target as HTMLElement);
+  //   // const b = (e.target as HTMLElement).parentElement;
+  //   const c = (e.target as HTMLElement).parentElement?.parentElement as HTMLElement;
+
+  //   // console.log(a);
+  //   // console.log(b);
+  //   console.log(c);
+
+  //   const groupElement = c;
+  //   // console.log
+  //   // const groupElement = e.target?.closest('g') as SVGGElement;
+
+  //   if (!groupElement) {
+  //     console.error("groupElement not selected");
+  //   }
+  //   // Clone the group element
+  //   const clonedGroupElement = groupElement.cloneNode(true) as SVGGElement;
+
+  //   // Set the cloned group to the state
+  //   setClonedGroup(clonedGroupElement);
+  //   setIsDragging(true);
+
+  //   // Set the initial position of the cloned group
+  //   setClonePosition({
+  //     x: e.pageX,
+  //     y: e.pageY,
+  //   });
+
+  //   // Prevent default behavior
+  //   e.preventDefault();
+
+  //   // Mousemove event listener to track the mouse movement
+  //   const onMouseMove = (e: MouseEvent): void => {
+  //     console.log('move');
+  //     console.log(e.pageX)
+  //     if (isDragging && clonedGroupElement) {
+  //       setClonePosition({
+  //         x: e.pageX,
+  //         y: e.pageY,
+  //       });
+  //     }
+  //   };
+
+  //   // Mouseup event listener to stop dragging
+  //   const onMouseUp = (): void => {
+  //     console.log('up')
+  //     setIsDragging(false);
+  //     setClonedGroup(null);
+
+  //     // Remove the event listeners
+  //     document.removeEventListener("mousemove", onMouseMove);
+  //     document.removeEventListener("mouseup", onMouseUp);
+  //   };
+
+  //   // Attach event listeners for mousemove and mouseup
+  //   document.addEventListener("mousemove", onMouseMove);
+  //   document.addEventListener("mouseup", onMouseUp);
+  // };
+
+  const handleMouseDown = (e: React.MouseEvent): void => {
+    const c = (e.target as HTMLElement).parentElement?.parentElement as HTMLElement;
+    const groupElement = c;
+  
+    if (!groupElement) {
+      console.error("groupElement not selected");
+      return;
+    }
+  
+    const clonedGroupElement = groupElement.cloneNode(true) as SVGGElement;
+  
+    // Update refs
+    clonedGroupElementRef.current = clonedGroupElement;
+    isDraggingRef.current = true;
+  
+    setClonedGroup(clonedGroupElement);
+    // setIsDragging(true);
+  
+    setClonePosition({
+      x: e.pageX,
+      y: e.pageY,
+    });
+  
+    const onMouseMove = (e: MouseEvent): void => {
+      if (isDraggingRef.current && clonedGroupElementRef.current) {
+        setClonePosition({
+          x: e.pageX,
+          y: e.pageY,
+        });
+      }
+    };
+  
+    const onMouseUp = (): void => {
+      isDraggingRef.current = false;
+      clonedGroupElementRef.current = null;
+  
+      // setIsDragging(false);
+      setClonedGroup(null);
+  
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+  
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
 
   function buyUnit(unit: Unit): void {
     console.log(unit.name)
@@ -65,6 +190,7 @@ function MainPage() {
   //   // });
   //   // setPosi
   // }
+  // console.log(clonedGroup)
 
   return (
     <>
@@ -74,19 +200,33 @@ function MainPage() {
         <div className="">
           <div className="border">Traits</div>
           <div className="border" id="board">
+                  {/* Render the clone group */}
+                {clonedGroup && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: `${clonePosition.x}px`,
+                      top: `${clonePosition.y}px`,
+                      height: '100px',
+                      width: '100px',
+                      backgroundColor: 'blue',
+                      pointerEvents: "none",
+                    }}
+                    // dangerouslySetInnerHTML={{ __html: clonedGroup.outerHTML }}
+                  />
+                )}
             <svg className="w-full md:w-[684px] xl:w-[760px]" viewBox="0 0 760 420">
               <g transform="translate(22, 14)">
                 {boardState.map((unit, index) =>
                   unit ? (
-                      <g  key={index} id={`hex${index}`} transform={indexToTransformString(index)}>
+                      <g  key={index} id={`hex${index}`} transform={indexToTransformString(index)}
+                      onMouseDown={handleMouseDown}>
                         <path
-                          style={{ zIndex: 1 }}
                           d="M48.49742261192856 0L96.99484522385713 28L96.99484522385713 84L48.49742261192856 112L0 84L0 28Z"
                           fill="transparent"
                           transform="translate(-5.5, -6)"
                         ></path>
                         <path
-                          style={{zIndex: 2}}
                           d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
                           fill="rgba(0, 0, 0, 0.6)"
                         ></path>
@@ -109,8 +249,24 @@ function MainPage() {
                         transform="translate(-5.5, -6)"
                       ></path>
                       <path
+                        onMouseOver={() => 
+                          isDraggingRef.current &&
+                          setHovered((prev) => {
+                          const newHovered = [...prev];
+                          newHovered[index] = true;
+                          return newHovered;
+                        })}
+                        onMouseLeave={
+                          () => 
+                            setHovered((prev) => {
+                            const newHovered = [...prev];
+                            newHovered[index] = false;
+                            return newHovered;
+                          })
+                        }
                         d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
-                        fill="rgba(0, 0, 0, 0.6)"
+                        // fill="rgba(0, 0, 0, 0.6)"
+                        fill={hovered[index] ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.6)"}
                       ></path>
                     </g>
                   )
