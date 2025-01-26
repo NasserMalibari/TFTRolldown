@@ -1,0 +1,16 @@
+.hexagon {
+    height: 100px; /* adjust to control the size  */
+    aspect-ratio: cos(30deg);
+    clip-path: polygon(-50% 50%,50% 100%,150% 50%,50% 0);
+    background: #3B8686; 
+}
+
+.maddie {
+    background-image: url('https://cdn.metatft.com/file/metatft/champions/tft13_shooter.png');
+    background-size: cover;
+    background-position: center;   
+}
+
+#singed {
+    
+}

@@ -2,14 +2,15 @@ import { useState } from "react";
 import Shop from "../components/Shop";
 import '../css/MainPage.css'
 import React from "react";
-// import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
+import Info from "../components/Info";
 // TODO: Meta
 
 
 export type Unit = {
   name: string;
+  cost: number;
   starLevel: number;
-  position: number;
+  position: number | null;
 }
 
 interface ClonePosition {
@@ -22,91 +23,37 @@ function MainPage() {
   const [boardState, setBoardState] = useState<Unit[]>(new Array(28).fill(null));
   const [hovered, setHovered] = useState<boolean[]>(new Array(28).fill(false));
 
+  const [level, setLevel] = useState(1);
+  // let level = 10;
   // const [isDragging, setIsDragging] = useState<boolean>(false);
   const isDraggingRef = React.useRef(false);
   const [clonePosition, setClonePosition] = useState<ClonePosition>({ x: 0, y: 0 });
   const [clonedGroup, setClonedGroup] = useState<SVGElement  | null>(null);
-  const clonedGroupElementRef = React.useRef<SVGGElement | null>(null);
 
 
-  // console.log(clonePosition);
-  // Handle mousedown event to initiate cloning and dragging
-  // const handleMouseDown = (e: React.MouseEvent): void => {
+  const increaseLevel = () => {
+    setLevel((level) => Math.min(level + 1, 10));
+  }
 
-  //   // const a = (e.target as HTMLElement);
-  //   // const b = (e.target as HTMLElement).parentElement;
-  //   const c = (e.target as HTMLElement).parentElement?.parentElement as HTMLElement;
+  const decreaseLevel = () => {
+    setLevel((level) => Math.max(level - 1, 1));
+  }
 
-  //   // console.log(a);
-  //   // console.log(b);
-  //   console.log(c);
-
-  //   const groupElement = c;
-  //   // console.log
-  //   // const groupElement = e.target?.closest('g') as SVGGElement;
-
-  //   if (!groupElement) {
-  //     console.error("groupElement not selected");
-  //   }
-  //   // Clone the group element
-  //   const clonedGroupElement = groupElement.cloneNode(true) as SVGGElement;
-
-  //   // Set the cloned group to the state
-  //   setClonedGroup(clonedGroupElement);
-  //   setIsDragging(true);
-
-  //   // Set the initial position of the cloned group
-  //   setClonePosition({
-  //     x: e.pageX,
-  //     y: e.pageY,
-  //   });
-
-  //   // Prevent default behavior
-  //   e.preventDefault();
-
-  //   // Mousemove event listener to track the mouse movement
-  //   const onMouseMove = (e: MouseEvent): void => {
-  //     console.log('move');
-  //     console.log(e.pageX)
-  //     if (isDragging && clonedGroupElement) {
-  //       setClonePosition({
-  //         x: e.pageX,
-  //         y: e.pageY,
-  //       });
-  //     }
-  //   };
-
-  //   // Mouseup event listener to stop dragging
-  //   const onMouseUp = (): void => {
-  //     console.log('up')
-  //     setIsDragging(false);
-  //     setClonedGroup(null);
-
-  //     // Remove the event listeners
-  //     document.removeEventListener("mousemove", onMouseMove);
-  //     document.removeEventListener("mouseup", onMouseUp);
-  //   };
-
-  //   // Attach event listeners for mousemove and mouseup
-  //   document.addEventListener("mousemove", onMouseMove);
-  //   document.addEventListener("mouseup", onMouseUp);
-  // };
 
   const handleMouseDown = (e: React.MouseEvent): void => {
     const c = (e.target as HTMLElement).parentElement?.parentElement as HTMLElement;
     const groupElement = c;
-  
+
+    // find from hex
+    const fromHexID = extractHexID(c.id);
     if (!groupElement) {
       console.error("groupElement not selected");
       return;
     }
   
     const clonedGroupElement = groupElement.cloneNode(true) as SVGGElement;
-  
     // Update refs
-    clonedGroupElementRef.current = clonedGroupElement;
     isDraggingRef.current = true;
-  
     setClonedGroup(clonedGroupElement);
     // setIsDragging(true);
   
@@ -116,7 +63,7 @@ function MainPage() {
     });
   
     const onMouseMove = (e: MouseEvent): void => {
-      if (isDraggingRef.current && clonedGroupElementRef.current) {
+      if (isDraggingRef.current) {
         setClonePosition({
           x: e.pageX,
           y: e.pageY,
@@ -124,11 +71,29 @@ function MainPage() {
       }
     };
   
-    const onMouseUp = (): void => {
+    const onMouseUp = (e2: MouseEvent): void => {
       isDraggingRef.current = false;
-      clonedGroupElementRef.current = null;
-  
-      // setIsDragging(false);
+
+      let element = (e2.target as HTMLElement).parentElement as HTMLElement;
+      if (!(element?.classList.contains("hex"))) {
+        console.error('element has hex!');
+        element = element.parentElement as HTMLElement;
+      }
+      
+      if (!element?.classList.contains("hex")) {
+        console.error("mouseUp on non-hex");
+        return;
+      }
+
+      const toHexID = extractHexID(element.id);
+
+      setHovered((prev) => {
+        const newHovered = [...prev];
+        newHovered[fromHexID] = false;
+        return newHovered;
+      });
+      moveUnit(fromHexID, toHexID);
+
       setClonedGroup(null);
   
       document.removeEventListener("mousemove", onMouseMove);
@@ -139,18 +104,18 @@ function MainPage() {
     document.addEventListener("mouseup", onMouseUp);
   };
 
+
   function buyUnit(unit: Unit): void {
-    console.log(unit.name)
+    // add unit to lowest free space
 
-
-    const n = 5;
     setBoardState((prevBoardState) => {
       const updatedBoard = [...prevBoardState];
-      updatedBoard[n] = unit; // Update the 5th position
-      updatedBoard[10] = unit; // Update the 10th position
+      const firstNullIndex = updatedBoard.findIndex((element) => element === null); // Find first null element
+      if (firstNullIndex !== -1) {
+        updatedBoard[firstNullIndex] = unit; // Update the first null position
+      }
       return updatedBoard;
     });
-    return;
   }
 
 
@@ -167,53 +132,33 @@ function MainPage() {
     });
   }
   
-  // console.log(boardState)
-  // const handleDragStop = (e: DraggableEvent, data: DraggableData) => {
-  //   const draggedElement = (e.target as HTMLElement).outerHTML;
-  //   const draggedElementParentId = (e.target as HTMLElement).parentElement?.id;
-  
-  //   // Get the new position after dragging
-  //   // const newPosition = { x: data.x, y: data.y };
-    
-  //   console.log(`${draggedElement}`)
-  //   console.log(`Dragged element ID: ${draggedElementParentId}`);
-  //   // console.log(`New position: x = ${newPosition.x}, y = ${newPosition.y}`);
-  //   // get from index
-    
-
-  //   // get to index
-
-  //   // setBoardState((prevBoardState) => {
-  //   //   const newBoardState = [...prevBoardState]; // Create a copy of the array
-  //   //   [newBoardState[5], newBoardState[10]] = [newBoardState[10], newBoardState[5]]; // Swap elements
-  //   //   return newBoardState; // Update the state with the new array
-  //   // });
-  //   // setPosi
-  // }
-  // console.log(clonedGroup)
+  const clearBoard = () => {
+    setBoardState(new Array(28).fill(null));
+  }
 
   return (
     <>
       <h1 className="text-4xl text-blue-500">Vite Project</h1>
       <div className="flex flex-col" >
-        <div className="border">INFO</div>
+        <div className="border"><Info level={level} increaseLevel={increaseLevel} decreaseLevel={decreaseLevel} clearBoard={clearBoard}/></div>
         <div className="">
           <div className="border">Traits</div>
           <div className="border" id="board">
                   {/* Render the clone group */}
                 {clonedGroup && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: `${clonePosition.x}px`,
-                      top: `${clonePosition.y}px`,
-                      height: '100px',
-                      width: '100px',
-                      backgroundColor: 'blue',
-                      pointerEvents: "none",
-                    }}
-                    // dangerouslySetInnerHTML={{ __html: clonedGroup.outerHTML }}
-                  />
+                  // clonedGroupElementRef.current
+                  <></>
+                  // <div
+                  //   style={{
+                  //     position: "absolute",
+                  //     left: `${clonePosition.x}px`,
+                  //     top: `${clonePosition.y}px`,
+                  //     height: '100px',
+                  //     width: '100px',
+                  //     backgroundColor: 'blue',
+                  //     pointerEvents: "none",
+                  //   }}
+                  // />
                 )}
             <svg className="w-full md:w-[684px] xl:w-[760px]" viewBox="0 0 760 420">
               <g transform="translate(22, 14)">
@@ -231,6 +176,13 @@ function MainPage() {
                           fill="rgba(0, 0, 0, 0.6)"
                         ></path>
                         <g>
+                          <g>
+                          <image height="98" 
+                          href={unitToHref(unit.name)}
+                          width="98" 
+                          clipPath="polygon(50% 0%, 93.301270189% 25%, 93.301270189% 75%, 50% 100%, 6.698729811% 75%, 6.698729811% 25%)" filter="" x="-5" y="2">
+                          </image>
+                          </g>
                           <path
                             d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
                             fill="transparent"
@@ -242,7 +194,7 @@ function MainPage() {
                       </g>
                   ) : (
                     // empty hex
-                    <g key={index} id={`hex${index}`} transform={indexToTransformString(index)}>
+                    <g key={index} className="hex" id={`hex${index}`} transform={indexToTransformString(index)}>
                       <path
                         d="M48.49742261192856 0L96.99484522385713 28L96.99484522385713 84L48.49742261192856 112L0 84L0 28Z"
                         fill="transparent"
@@ -275,7 +227,7 @@ function MainPage() {
             </svg>
           </div>
         </div>
-        <Shop buyUnit={buyUnit} />
+        <Shop buyUnit={buyUnit} level={level} />
       </div>
     </>
 )
@@ -283,6 +235,158 @@ function MainPage() {
 }
 
 export default MainPage;
+
+function extractHexID(elementID: string): number {
+  let hexID = -1;
+  if (!(/hex/.test(elementID))) {
+    console.error("element id doesnt have hex in its id")
+  } else {
+    // extract id
+    const match = elementID.match(/hex(\d+)/);
+    if (match) {
+      hexID = parseInt(match[1], 10);
+    }
+  }
+
+  return hexID
+}
+
+
+function unitToHref(unitName: string): string {
+  
+  switch (unitName.toLowerCase()) {
+    case "amumu":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_amumu.jpg?w=98"
+    case "darius":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_darius.jpg?w=98"
+    case "draven":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_draven.jpg?w=98"
+    case "irelia":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_irelia.jpg?w=98"
+    case "lux":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_lux.jpg?w=98"
+    case "maddie":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_shooter.jpg?w=98"
+    case "morgana":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_morgana.jpg?w=98"
+    case "powder":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_blue.jpg?w=98"
+    case "singed":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_singed.jpg?w=98"
+    case "steb":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_fish.jpg?w=98"
+    case "trundle":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_trundle.jpg?w=98"
+    case "vex":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_vex.jpg?w=98"
+    case "violet":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_red.jpg?w=98"
+    case "zyra":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_zyra.jpg?w=98"
+    case "akali":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_akali.jpg?w=98"
+    case "camille":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_camille.jpg?w=98"
+    case "leona":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_leona.jpg?w=98"
+    case "nocturne":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_nocturne.jpg?w=98"
+    case "rell":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_rell.jpg?w=98"
+    case "renata glasc":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_renataGlasc.jpg?w=98"
+    case "sett":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_sett.jpg?w=98"
+    case "tristana":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_tristana.jpg?w=98"
+    case "urgot":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_urgot.jpg?w=98"
+    case "vander":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_prime.jpg?w=98"
+    case "vladimir":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_vladimir.jpg?w=98"
+    case "zeri":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_zeri.jpg?w=98"
+    case "ziggs":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_ziggs.jpg?w=98"
+    case "blitzcrank":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_blitzcrank.jpg?w=98"
+    case "cassiopeia":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_cassiopeia.jpg?w=98"
+    case "ezreal":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_ezreal.jpg?w=98"
+    case "gangplank":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_gangplank.jpg?w=98"
+    case "kog'maw":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_kogmaw.jpg?w=98"
+    case "loris":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_beardy.jpg?w=98"
+    case "nami":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_nami.jpg?w=98"
+    case "nunu":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_NunuWillump.jpg?w=98"
+    case "renni":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_chainsaw.jpg?w=98"
+    case "scar":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_flyguy.jpg?w=98"
+    case "smeech":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_gremlin.jpg?w=98"
+    case "swain":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_swain.jpg?w=98"
+    case "twisted fate":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_twistedFate.jpg?w=98"
+    case "ambessa":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_ambessa.jpg?w=98"
+    case "corki":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_corki.jpg?w=98"
+    case "dr. mundo":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_drmundo.jpg?w=98"
+    case "ekko":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_ekko.jpg?w=98"
+    case "elise":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_elise.jpg?w=98"
+    case "garen":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_garen.jpg?w=98"
+    case "heimerdinger":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_heimerdinger.jpg?w=98"
+    case "illaoi":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_illaoi.jpg?w=98"
+    case "silco":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_silco.jpg?w=98"
+    case "twitch":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_twitch.jpg?w=98"
+    case "vi":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_vi.jpg?w=98"
+    case "zoe":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_zoe.jpg?w=98"
+    case "caitlyn":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_caitlyn.jpg?w=98"
+    case "jayce":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_jayce.jpg?w=98"
+    case "jinx":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_jinx.jpg?w=98"
+    case "leblanc":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_leblanc.jpg?w=98"
+    case "malzahar":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_malzahar.jpg?w=98"
+    case "mordekaiser":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_mordekaiser.jpg?w=98"
+    case "rumble":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_rumble.jpg?w=98"
+    case "sevika":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_lieutenant.jpg?w=98"
+    case "mel":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_missmage.jpg?w=98"
+    case "viktor":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_viktor.jpg?w=98"
+    case "warwick":
+      return "https://ap.tft.tools/img/ts13/face_full/TFT13_warwick.jpg?w=98"
+    default:
+      return ""
+  }
+
+}
+
 
 function indexToTransformString(index: number): string {
 
