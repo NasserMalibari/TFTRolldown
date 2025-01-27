@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {  useRef, useState } from "react";
 import Shop from "../components/Shop";
 import '../css/MainPage.css'
 import React from "react";
@@ -10,7 +10,7 @@ export type Unit = {
   name: string;
   cost: number;
   starLevel: number;
-  position: number | null;
+  // position: number | null;
 }
 
 interface ClonePosition {
@@ -20,7 +20,7 @@ interface ClonePosition {
 
 function MainPage() {
 
-  const [boardState, setBoardState] = useState<Unit[]>(new Array(28).fill(null));
+  const [boardState, setBoardState] = useState<(Unit | null)[]>(new Array(28).fill(null));
   const [hovered, setHovered] = useState<boolean[]>(new Array(28).fill(false));
 
   const [level, setLevel] = useState(1);
@@ -29,6 +29,8 @@ function MainPage() {
   const isDraggingRef = React.useRef(false);
   const [clonePosition, setClonePosition] = useState<ClonePosition>({ x: 0, y: 0 });
   const [clonedGroup, setClonedGroup] = useState<SVGElement  | null>(null);
+
+  const totals = useRef<{ [key: string]: number }>({});
 
 
   const increaseLevel = () => {
@@ -76,7 +78,7 @@ function MainPage() {
 
       let element = (e2.target as HTMLElement).parentElement as HTMLElement;
       if (!(element?.classList.contains("hex"))) {
-        console.error('element has hex!');
+        // console.error('element doesnt have hex!');
         element = element.parentElement as HTMLElement;
       }
       
@@ -106,16 +108,111 @@ function MainPage() {
 
 
   function buyUnit(unit: Unit): void {
-    // add unit to lowest free space
+    
+    if (unit.name in totals.current) {
+      totals.current[unit.name]++;
+    } else {
+      totals.current[unit.name] = 1;
+    }
+    
+    if (totals.current[unit.name] === 3) {
+      // Merge logic
+      setBoardState((prevBoardState) => {
+        // Create a copy of the previous state to ensure immutability
+        const updatedBoardState = [...prevBoardState];
+    
+        // Track the indices of the units to merge
+        const indicesToMerge: number[] = [];
+    
+        // Find all units with the same name
+        updatedBoardState.forEach((u, index) => {
+          if (u !== null && u.name === unit.name) {
+            indicesToMerge.push(index);
+          }
+        });
+    
+        // If there are exactly 3 units to merge
+        if (indicesToMerge.length === 2) {
 
-    setBoardState((prevBoardState) => {
-      const updatedBoard = [...prevBoardState];
-      const firstNullIndex = updatedBoard.findIndex((element) => element === null); // Find first null element
-      if (firstNullIndex !== -1) {
-        updatedBoard[firstNullIndex] = unit; // Update the first null position
-      }
-      return updatedBoard;
-    });
+          // Remove the first two units (set them to null)
+          updatedBoardState[indicesToMerge[0]] = null;
+          const thirdUnit = updatedBoardState[indicesToMerge[1]];
+          if (thirdUnit) {
+            thirdUnit.starLevel = 2;
+          }
+        }
+    
+        return updatedBoardState;
+      });
+    } else if (totals.current[unit.name] === 6) {
+      // Merge logic
+      setBoardState((prevBoardState) => {
+        // Create a copy of the previous state to ensure immutability
+        const updatedBoardState = prevBoardState.map(u => u ? { ...u } : null);
+    
+        // Track the indices of the units to merge
+        const indicesToMerge: number[] = [];
+    
+        // Find all units with the same name
+        updatedBoardState.forEach((u, index) => {
+          if (u !== null && u.name === unit.name && u.starLevel == 1) {
+            indicesToMerge.push(index);
+          }
+        });
+        
+        // If there are exactly 3 units to merge
+        if (indicesToMerge.length === 2) {
+
+          // Remove the first two units (set them to null)
+          updatedBoardState[indicesToMerge[0]] = null;
+          const thirdUnit = updatedBoardState[indicesToMerge[1]];
+          if (thirdUnit) {
+            thirdUnit.starLevel = 2;
+          }
+        }
+        return updatedBoardState;
+      });
+    } else if (totals.current[unit.name] === 9) {
+      // Merge logic
+      setBoardState((prevBoardState) => {
+        // Create a copy of the previous state to ensure immutability
+        const updatedBoardState = prevBoardState.map(u => u ? { ...u } : null);
+    
+        // Track the indices of the units to merge
+        const indicesToMerge: number[] = [];
+    
+        // Find all units with the same name
+        updatedBoardState.forEach((u, index) => {
+          if (u !== null && u.name === unit.name) {
+            indicesToMerge.push(index);
+          }
+        });
+        
+        // If there are exactly 3 units to merge
+        if (indicesToMerge.length === 4) {
+
+          // Remove the first two units (set them to null)
+          updatedBoardState[indicesToMerge[0]] = null;
+          updatedBoardState[indicesToMerge[1]] = null;
+          updatedBoardState[indicesToMerge[2]] = null;
+          const thirdUnit = updatedBoardState[indicesToMerge[3]];
+          if (thirdUnit) {
+            thirdUnit.starLevel = 3;
+          }
+        }
+        return updatedBoardState;
+      });
+    } else {
+      // unit.starLevel = 2;
+      setBoardState((prevBoardState) => {
+        const updatedBoard = [...prevBoardState];
+        const firstNullIndex = updatedBoard.findIndex((element) => element === null); // Find first null element
+        if (firstNullIndex !== -1) {
+          updatedBoard[firstNullIndex] = unit; // Update the first null position
+        }
+        return updatedBoard;
+      });
+    }
   }
 
 
@@ -134,12 +231,16 @@ function MainPage() {
   
   const clearBoard = () => {
     setBoardState(new Array(28).fill(null));
+    setHovered(new Array(28).fill(false));
+    totals.current = {};
   }
 
   return (
     <>
       <h1 className="text-4xl text-blue-500">Vite Project</h1>
-      <div className="flex flex-col" >
+      <div className="flex flex-col" style={{
+        cursor: isDraggingRef.current ? 'pointer' : 'default'
+      }}>
         <div className="border"><Info level={level} increaseLevel={increaseLevel} decreaseLevel={decreaseLevel} clearBoard={clearBoard}/></div>
         <div className="">
           <div className="border">Traits</div>
@@ -164,7 +265,7 @@ function MainPage() {
               <g transform="translate(22, 14)">
                 {boardState.map((unit, index) =>
                   unit ? (
-                      <g  key={index} id={`hex${index}`} transform={indexToTransformString(index)}
+                      <g  className="hex" key={index} id={`hex${index}`} transform={indexToTransformString(index)}
                       onMouseDown={handleMouseDown}>
                         <path
                           d="M48.49742261192856 0L96.99484522385713 28L96.99484522385713 84L48.49742261192856 112L0 84L0 28Z"
@@ -186,11 +287,35 @@ function MainPage() {
                           <path
                             d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
                             fill="transparent"
-                            stroke="rgba(187, 187, 187, 0.75)"
+                            stroke="rgba(187, 187, 187, 0.75)" 
+                            // stroke="rgba(355, 0, 0, 0.75)"// this is red
                             strokeWidth="3.5"
                             transform="translate(0.5, 0.5)"
                           ></path>
                         </g>
+                        {unit.starLevel == 2 && 
+                        <g transform="translate(42, 0)">
+                          <g width="22.056631892697467" transform="translate(-22.056631892697467, 0)">
+                            <polygon fill="#add1e4" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                          </g>
+                          <g width="22.056631892697467" transform="translate(0, 0)" >
+                            <polygon fill="#add1e4" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                          </g>
+                        </g>
+                        }
+                        {unit.starLevel == 3 && 
+                          <g transform="translate(42, 0)">
+                            <g width="22.056631892697467" transform="translate(-33.0849478390462, 0)">
+                              <polygon fill="#dcba11" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                            </g>
+                            <g width="22.056631892697467" transform="translate(-11.028315946348734, 0)">
+                              <polygon fill="#dcba11" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                            </g>
+                            <g width="22.056631892697467" transform="translate(11.028315946348734, 0)">
+                              <polygon fill="#dcba11" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                            </g>
+                          </g>
+                        }
                       </g>
                   ) : (
                     // empty hex

@@ -17,7 +17,6 @@ function Shop( {buyUnit, level}: ShopProps ) {
 
   useEffect(() => {
     const onKeyDown = (e: { key: string; }) => {
-      console.log(`${level}`);
       if (e.key === 'd') {
         reroll();
       }
@@ -133,7 +132,6 @@ function Shop( {buyUnit, level}: ShopProps ) {
   
   const rollShop = (): ShopSlot[] => {
     
-    console.log(`rolling with level ${level}`)
     const returnLst: ShopSlot[] = [];
     for (let i = 0; i < 5; i++) {
       const unitCost = generateUnitCost();
@@ -179,7 +177,6 @@ function Shop( {buyUnit, level}: ShopProps ) {
                     name: slot.unit,
                     cost: 1,
                     starLevel: 1,
-                    position: null,
                   })}}
                 >
                   {slot.unit}
