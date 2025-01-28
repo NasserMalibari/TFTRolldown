@@ -22,9 +22,8 @@ function MainPage() {
 
   const [boardState, setBoardState] = useState<(Unit | null)[]>(new Array(28).fill(null));
   const [hovered, setHovered] = useState<boolean[]>(new Array(28).fill(false));
-
+  const [gold, setGold] = useState(0);
   const [level, setLevel] = useState(1);
-  // let level = 10;
   // const [isDragging, setIsDragging] = useState<boolean>(false);
   const isDraggingRef = React.useRef(false);
   const [clonePosition, setClonePosition] = useState<ClonePosition>({ x: 0, y: 0 });
@@ -32,7 +31,72 @@ function MainPage() {
 
   const totals = useRef<{ [key: string]: number }>({});
 
+  const [seed, setSeed] = useState<string | undefined>("hello");
 
+  const addGold = (amount: number) => {
+    setGold(prev => Math.max(0, prev + amount));
+  }
+
+  const updateSeed = (newSeed: string) => {
+    setSeed(newSeed);
+  }
+
+  const sellUnit = (index: number) => {
+    const soldUnit = boardState[index];
+
+    if (soldUnit === null) {
+      console.error("trying to sell null unit");
+      return;
+    }
+    
+    setGold((prev) => {
+      if (soldUnit.starLevel === 1) {
+        return prev + (soldUnit.cost);
+      } else if (soldUnit.starLevel === 2) {
+        if (soldUnit.cost === 1) {
+          return prev + (soldUnit.cost * 3);
+        } else {
+          return prev + (soldUnit.cost * 3) - 1;
+        }
+      } else {
+        if (soldUnit.cost === 1) {
+          return prev + (soldUnit.cost * 9);
+        } else {
+          return prev + (soldUnit.cost * 9) - 1;
+        }
+      }
+    });
+    const currNumUnits = totals.current[soldUnit.name];
+    if (soldUnit.starLevel === 1) {
+      if (currNumUnits < 1) {
+        console.error("trying to sell but not enough in totals");
+      }
+      totals.current[soldUnit.name]--;
+    } else if (soldUnit.starLevel === 2) {
+      if (currNumUnits < 3) {
+        console.error("trying to sell but not enough in totals");
+      }
+      totals.current[soldUnit.name] -= 3;
+    } else if (soldUnit.starLevel === 3) {
+      if (currNumUnits < 9) {
+        console.error("trying to sell but not enough in totals");
+      }
+      totals.current[soldUnit.name] -= 9;
+    } 
+
+    setBoardState((prevBoardState) => {
+      const newBoardState = [...prevBoardState];
+      newBoardState[index] = null; 
+      return newBoardState;
+    });
+
+    setHovered((prev) => {
+      const newHovered = [...prev];
+      newHovered[index] = false;
+      return newHovered;
+    });
+  } 
+  
   const increaseLevel = () => {
     setLevel((level) => Math.min(level + 1, 10));
   }
@@ -40,7 +104,6 @@ function MainPage() {
   const decreaseLevel = () => {
     setLevel((level) => Math.max(level - 1, 1));
   }
-
 
   const handleMouseDown = (e: React.MouseEvent): void => {
     const c = (e.target as HTMLElement).parentElement?.parentElement as HTMLElement;
@@ -76,7 +139,16 @@ function MainPage() {
     const onMouseUp = (e2: MouseEvent): void => {
       isDraggingRef.current = false;
 
-      let element = (e2.target as HTMLElement).parentElement as HTMLElement;
+      let element = (e2.target as HTMLElement);
+
+      if (element.id === "SELL") {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+        sellUnit(fromHexID);
+        return;
+      }
+
+      element = element.parentElement as HTMLElement;
       if (!(element?.classList.contains("hex"))) {
         // console.error('element doesnt have hex!');
         element = element.parentElement as HTMLElement;
@@ -114,14 +186,14 @@ function MainPage() {
     } else {
       totals.current[unit.name] = 1;
     }
+
+    setGold((prev) => Math.max(prev - unit.cost, 0));
     
     if (totals.current[unit.name] === 3) {
       // Merge logic
       setBoardState((prevBoardState) => {
-        // Create a copy of the previous state to ensure immutability
         const updatedBoardState = [...prevBoardState];
     
-        // Track the indices of the units to merge
         const indicesToMerge: number[] = [];
     
         // Find all units with the same name
@@ -147,23 +219,16 @@ function MainPage() {
     } else if (totals.current[unit.name] === 6) {
       // Merge logic
       setBoardState((prevBoardState) => {
-        // Create a copy of the previous state to ensure immutability
         const updatedBoardState = prevBoardState.map(u => u ? { ...u } : null);
-    
-        // Track the indices of the units to merge
         const indicesToMerge: number[] = [];
     
-        // Find all units with the same name
         updatedBoardState.forEach((u, index) => {
           if (u !== null && u.name === unit.name && u.starLevel == 1) {
             indicesToMerge.push(index);
           }
         });
         
-        // If there are exactly 3 units to merge
-        if (indicesToMerge.length === 2) {
-
-          // Remove the first two units (set them to null)
+        if (indicesToMerge.length === 2) {          
           updatedBoardState[indicesToMerge[0]] = null;
           const thirdUnit = updatedBoardState[indicesToMerge[1]];
           if (thirdUnit) {
@@ -174,24 +239,19 @@ function MainPage() {
       });
     } else if (totals.current[unit.name] === 9) {
       // Merge logic
-      setBoardState((prevBoardState) => {
-        // Create a copy of the previous state to ensure immutability
-        const updatedBoardState = prevBoardState.map(u => u ? { ...u } : null);
-    
-        // Track the indices of the units to merge
-        const indicesToMerge: number[] = [];
-    
-        // Find all units with the same name
+      setBoardState((prevBoardState) => {        
+        const updatedBoardState = prevBoardState.map(u => u ? { ...u } : null);            
+        const indicesToMerge: number[] = [];    
+        
         updatedBoardState.forEach((u, index) => {
           if (u !== null && u.name === unit.name) {
             indicesToMerge.push(index);
           }
         });
         
-        // If there are exactly 3 units to merge
+        
         if (indicesToMerge.length === 4) {
-
-          // Remove the first two units (set them to null)
+        
           updatedBoardState[indicesToMerge[0]] = null;
           updatedBoardState[indicesToMerge[1]] = null;
           updatedBoardState[indicesToMerge[2]] = null;
@@ -241,7 +301,9 @@ function MainPage() {
       <div className="flex flex-col" style={{
         cursor: isDraggingRef.current ? 'pointer' : 'default'
       }}>
-        <div className="border"><Info level={level} increaseLevel={increaseLevel} decreaseLevel={decreaseLevel} clearBoard={clearBoard}/></div>
+        <div className="border"><Info level={level} increaseLevel={increaseLevel} decreaseLevel={decreaseLevel} clearBoard={clearBoard}
+        gold={gold} addGold={addGold} updateSeed={updateSeed} />
+        </div>
         <div className="">
           <div className="border">Traits</div>
           <div className="border" id="board">
@@ -352,7 +414,11 @@ function MainPage() {
             </svg>
           </div>
         </div>
-        <Shop buyUnit={buyUnit} level={level} />
+        <Shop buyUnit={buyUnit} level={level} addGold={addGold} seed={seed} />
+        <div className="flex items-center justify-center w-full bg-gray-50 h-40"
+          id="SELL">
+            SELL
+        </div>
       </div>
     </>
 )

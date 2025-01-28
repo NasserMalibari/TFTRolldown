@@ -1,10 +1,15 @@
 import { Unit } from "../pages/MainPage";
 import "../css/Shop.css"
-import { useEffect, useState } from "react";
+import "../css/MainPage.css"
+import { useEffect, useMemo, useState } from "react";
+import seedrandom from 'seedrandom';
+
 
 interface ShopProps {
   buyUnit: (unit: Unit) => void; // Function type
   level: number;
+  addGold: (amount: number) => void;
+  seed: string | undefined;
 }
 
 interface ShopSlot {
@@ -13,7 +18,16 @@ interface ShopSlot {
   cost: number;
 }
 
-function Shop( {buyUnit, level}: ShopProps ) {
+seedrandom(Math.random().toString(), { global: true });
+
+
+function Shop( {buyUnit, level, addGold, seed}: ShopProps ) {
+
+  useMemo(() => {
+    if (seed !== undefined) {
+      return seedrandom(seed, { global: true });
+    }
+  }, [seed]); // Empty dependency array ensures this runs only once.
 
   useEffect(() => {
     const onKeyDown = (e: { key: string; }) => {
@@ -36,6 +50,8 @@ function Shop( {buyUnit, level}: ShopProps ) {
   const allUnits = [[], oneCostChamps, twoCostChamps, threeCostChamps, fourCostChamps, fiveCostChamps, sixCostChamps];
 
   const generateUnitCost = () => {
+
+    // const ran_number = Math.random();
     const ran_number = Math.random();
 
     switch (level) {
@@ -135,10 +151,14 @@ function Shop( {buyUnit, level}: ShopProps ) {
     const returnLst: ShopSlot[] = [];
     for (let i = 0; i < 5; i++) {
       const unitCost = generateUnitCost();
-      const randomIdx = Math.floor(Math.random() * allUnits[unitCost]?.length);
+
+      // const ran_number = rng();
+      const ran_number = Math.random();
+
+      const randomIdx = Math.floor(ran_number * allUnits[unitCost]?.length);
       returnLst.push({
         purchased: false,
-        cost: 1,
+        cost: unitCost,
         unit: allUnits[unitCost][randomIdx],
       });
     }
@@ -147,20 +167,18 @@ function Shop( {buyUnit, level}: ShopProps ) {
   }
 
   const reroll = (): void => {
+    addGold(-2);
     setShopSlots(rollShop());
   }
 
   const [shopSlots, setShopSlots] = useState<ShopSlot[]>([]);
-  // console.log(buyUnit)
-  
 
   return (
     <>
-      <div className="border flex h-32">
+      <div className="border flex h-32 unselectable">
           {/* SHOP */}
           <div className="flex flex-col h-full">
-            <button className="border h-full flex items-center justify-center"
-            >
+            <button className="border h-full flex items-center justify-center">
               Buy XP
             </button>
             <button 
@@ -171,15 +189,25 @@ function Shop( {buyUnit, level}: ShopProps ) {
           </div>
           <div className="flex">
           {/* <div className="shopSlot cursor-pointer flex justify-center items-center" id="shop1"> */}
-            {shopSlots.map((slot, index) => 
+            {shopSlots.map((slot, index) =>
+              !slot.purchased ?
                 <div key={index} className="shopSlot cursor-pointer flex justify-center items-center"
                   onClick={() => {buyUnit({
                     name: slot.unit,
-                    cost: 1,
+                    cost: slot.cost,
                     starLevel: 1,
-                  })}}
+                  });
+                  setShopSlots((prev) => {
+                    const newShopSlots = [...prev];
+                    newShopSlots[index].purchased = true;
+                    return newShopSlots;              
+                  });
+                  }}
                 >
                   {slot.unit}
+                </div> : 
+                <div key={index} className="purchased cursor-pointer flex justify-center items-center">
+                  
                 </div>
               )}
           </div>
