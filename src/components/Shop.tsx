@@ -1,4 +1,4 @@
-import { Unit } from "../pages/MainPage";
+import { Unit, unitToTraits } from "../pages/MainPage";
 import "../css/Shop.css"
 import "../css/MainPage.css"
 import { useEffect, useMemo, useState } from "react";
@@ -18,9 +18,6 @@ interface ShopSlot {
   cost: number;
 }
 
-seedrandom(Math.random().toString(), { global: true });
-
-
 function Shop( {buyUnit, level, addGold, seed}: ShopProps ) {
 
   useMemo(() => {
@@ -38,7 +35,7 @@ function Shop( {buyUnit, level, addGold, seed}: ShopProps ) {
    
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-   }, [level]);
+  }, [level]);
 
   const oneCostChamps = ["Singed", "Powder", "Violet", "Lux", "Zyra", "Darius", "Draven", "Amumu", "Irelia", "Maddie", "Trundle", "Steb", "Morgana", "Vex"];
   const twoCostChamps = ["Akali", "Camille", "Leona", "Nocturne", "Rell", "Renata Glasc", "Sett", "Tristana", "Urgot", "Vander", "Vladimir", "Zeri", "Ziggs"];
@@ -196,6 +193,7 @@ function Shop( {buyUnit, level, addGold, seed}: ShopProps ) {
                     name: slot.unit,
                     cost: slot.cost,
                     starLevel: 1,
+                    traits: unitToTraits(slot.unit),
                   });
                   setShopSlots((prev) => {
                     const newShopSlots = [...prev];

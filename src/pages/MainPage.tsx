@@ -1,4 +1,4 @@
-import {  useRef, useState } from "react";
+import {  useEffect, useRef, useState } from "react";
 import Shop from "../components/Shop";
 import '../css/MainPage.css'
 import React from "react";
@@ -10,12 +10,20 @@ export type Unit = {
   name: string;
   cost: number;
   starLevel: number;
-  // position: number | null;
+  traits: string[];
 }
 
 interface ClonePosition {
   x: number;
   y: number;
+}
+
+
+export type TraitLevel = {
+  name: string;
+  level: "grey" | "bronze" | "silver" | "gold" | "prismatic";
+  numActivated: number;
+  numNeeded: number;
 }
 
 function MainPage() {
@@ -31,8 +39,8 @@ function MainPage() {
 
   const totals = useRef<{ [key: string]: number }>({});
 
-  const [seed, setSeed] = useState<string | undefined>("hello");
-
+  const [seed, setSeed] = useState<string | undefined>(undefined);
+  const [traits, setTraits] = useState<TraitLevel[]>([]);
   const addGold = (amount: number) => {
     setGold(prev => Math.max(0, prev + amount));
   }
@@ -40,6 +48,16 @@ function MainPage() {
   const updateSeed = (newSeed: string) => {
     setSeed(newSeed);
   }
+
+  // useEffect(() => {
+  //   let newTraits: TraitLevel[] = [];
+  //   // let a = totals.currentd
+  //   for (const unit in totals.current) {
+  //     console.log(unit);
+  //   }
+
+
+  // }, [totals])
 
   const sellUnit = (index: number) => {
     const soldUnit = boardState[index];
@@ -187,6 +205,32 @@ function MainPage() {
       totals.current[unit.name] = 1;
     }
 
+    const newTraits: TraitLevel[] = [];
+    for (const unit in totals.current) {
+      if (totals.current[unit] > 0) {
+        for (const trait of unitToTraits(unit)) {
+          // add it to traitlevels
+          const i = newTraits.findIndex((t) => t.name === trait);
+          if (i !== -1) {
+            newTraits[i].numActivated++;
+            newTraits[i].numNeeded = traitToNumNeeded(trait, newTraits[i].numActivated);
+          } else {
+            newTraits.push({
+              name: trait,
+              numActivated: 1,
+              numNeeded: traitToNumNeeded(trait, 1),
+              level: "grey"
+            })
+          }
+        }
+      }
+      newTraits.sort((a, b) => {
+        return b.numActivated - a.numActivated;
+      })
+      setTraits(newTraits);
+    }
+    // set the traits
+
     setGold((prev) => Math.max(prev - unit.cost, 0));
     
     if (totals.current[unit.name] === 3) {
@@ -292,6 +336,7 @@ function MainPage() {
   const clearBoard = () => {
     setBoardState(new Array(28).fill(null));
     setHovered(new Array(28).fill(false));
+    setTraits([]);
     totals.current = {};
   }
 
@@ -304,8 +349,14 @@ function MainPage() {
         <div className="border"><Info level={level} increaseLevel={increaseLevel} decreaseLevel={decreaseLevel} clearBoard={clearBoard}
         gold={gold} addGold={addGold} updateSeed={updateSeed} />
         </div>
-        <div className="">
-          <div className="border">Traits</div>
+        <div className="flex">
+          <div className="border flex flex-col">Traits
+            {traits.map((trait, index) => 
+              <div key={index}>
+                {trait.name} {trait.numActivated}/{trait.numNeeded}
+              </div>
+            )}
+          </div>
           <div className="border" id="board">
                   {/* Render the clone group */}
                 {clonedGroup && (
@@ -575,9 +626,345 @@ function unitToHref(unitName: string): string {
     default:
       return ""
   }
-
 }
 
+export const unitToTraits = (unitName: string): string[] => {
+
+  switch(unitName.toLowerCase()) {
+    case "amumu":
+      return ["automata", "watcher"];
+    case "darius":
+      return ["conqueror", "watcher"];
+    case "draven":
+      return ["conqueror", "pit fighter"];
+    case "irelia":
+      return ["rebel", "sentinel"];
+    case "lux":
+      return ["academy", "sorcerer"];
+    case "maddie":
+      return ["enforcer", "sniper"];
+    case "morgana":
+      return ["black rose", "visionary"];
+    case "powder":
+      return ["family", "scrap", "ambusher"];
+    case "singed":
+      return ["chem-baron", "sentinel"];
+    case "steb":
+      return ["enforcer", "bruiser"];
+    case "trundle":
+      return ["scrap", "bruiser"];
+    case "vex":
+      return ["rebel", "visionary"];
+    case "violet":
+      return ["family", "pit fighter"];
+    case "zyra":
+      return ["experiment", "sorcerer"];
+    case "akali":
+      return ["rebel", "quickstriker"];
+    case "camille":
+      return ["enforcer", "ambusher"];
+    case "leona":
+      return ["academy", "sentinel"];
+    case "nocturne":
+      return ["automata", "quickstriker"];
+    case "rell":
+      return ["conqueror", "sentinel", "visionary"];
+    case "renata glasc":
+      return ["chem-baron", "visionary"];
+    case "sett":
+      return ["rebel", "bruiser"];
+    case "tristana":
+      return ["emissary", "artillerist"];
+    case "urgot":
+      return ["experiment", "pit fighter", "artillerist"];
+    case "vander":
+      return ["family", "watcher"];
+    case "vladimir":
+      return ["black rose", "watcher", "sorcerer"];
+    case "zeri":
+      return ["firelight", "sniper"];
+    case "ziggs":
+      return ["scrap", "dominator"];
+    case "blitzcrank":
+      return ["automata", "dominator"];
+    case "cassiopeia":
+      return ["black rose", "dominator"];
+    case "ezreal":
+      return ["academy", "rebel", "artillerist"];
+    case "gangplank":
+      return ["scrap", "form swapper", "pit fighter"];
+    case "kog'maw":
+      return ["automata", "sniper"];
+    case "loris":
+      return ["enforcer", "sentinel"];
+    case "nami":
+      return ["emissary", "sorcerer"];
+    case "nunu":
+      return ["experiment", "bruiser", "visionary"];
+    case "renni":
+      return ["chem-baron", "bruiser"];
+    case "scar":
+      return ["firelight", "watcher"];
+    case "smeech":
+      return ["chem-baron", "ambusher"];
+    case "swain":
+      return ["conqueror", "form swapper", "sorcerer"];
+    case "twisted fate":
+      return ["enforcer", "quickstriker"];
+    case "ambessa":
+      return ["emissary", "conqueror", "quickstriker"];
+    case "corki":
+      return ["scrap", "artillerist"];
+    case "dr. mundo":
+      return ["experiment", "dominator"];
+    case "ekko":
+      return ["firelight", "scrap", "ambusher"];
+    case "elise":
+      return ["black rose", "form swapper", "bruiser"];
+    case "garen":
+      return ["emissary", "watcher"];
+    case "heimerdinger":
+      return ["academy", "visionary"];
+    case "illaoi":
+      return ["rebel", "sentinel"];
+    case "silco":
+      return ["chem-baron", "dominator"];
+    case "twitch":
+      return ["experiment", "sniper"];
+    case "vi":
+      return ["enforcer", "pit fighter"];
+    case "zoe":
+      return ["rebel", "sorcerer"];
+    case "caitlyn":
+      return ["enforcer", "sniper"];
+    case "jayce":
+      return ["academy", "form swapper"];
+    case "jinx":
+      return ["rebel", "ambusher"];
+    case "leblanc":
+      return ["black rose", "sorcerer"];
+    case "malzahar":
+      return ["automata", "visionary"];
+    case "mordekaiser":
+      return ["conqueror", "dominator"];
+    case "rumble":
+      return ["junker king", "scrap", "sentinel"];
+    case "sevika":
+      return ["high roller", "chem-baron", "pit fighter"];
+    case "mel":
+      return ["banished mage"];
+    case "viktor":
+      return ["machine heralds"];
+    case "warwick":
+      return ["experiment", "blood hunter"];
+    default:
+      return [];
+  }
+}
+
+
+const traitToNumNeeded = (traitName: string, numActivated: number ): number => {
+
+  // console.log(`input: ${traitName} ${numActivated}`)
+  switch (traitName.toLowerCase()) {
+    case "academy":
+      if (numActivated === 4) {
+        return 4;
+      } else if (numActivated === 5) {
+        return 5;
+      } else if (numActivated >= 6) {
+        return 6;
+      }
+      return 3;
+    case "automata":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated >= 6) {
+        return 6;
+      }
+      return 2;
+    case "banished mage":
+      return 1;
+    case "blood hunter":
+      return 1;
+    case "black rose":
+      if (numActivated === 5 || numActivated === 6) {
+        return 5;
+      } else if (numActivated >= 7) {
+        return 7;
+      }
+      return 3;
+    case "chem-baron":
+      if (numActivated === 4) {
+        return 4;
+      } else if (numActivated === 5) {
+        return 5;
+      } else if (numActivated === 6) {
+        return 6;
+      } else if (numActivated >= 7) {
+        return 7;
+      }
+      return 3;
+    case "conqueror":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated === 6 || numActivated === 7) {
+        return 6;
+      } else if (numActivated >= 8) {
+        return 8;
+      }
+      return 2;
+    case "emissary":
+      if (numActivated === 4) {
+        return 4;
+      }
+      return 1;
+    case "enforcer":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated === 6 || numActivated === 7) {
+        return 6;
+      } else if (numActivated === 8 || numActivated === 9) {
+        return 8;
+      } else if (numActivated >= 10) {
+        return 10;
+      }
+      return 2;
+    case "experiment":
+      if (numActivated === 5 || numActivated === 6) {
+        return 5;
+      } else if (numActivated >= 7) {
+        return 7;
+      }
+      return 3;
+    case "family":
+      if (numActivated === 4) {
+        return 4;
+      } else if (numActivated === 5) {
+        return 5;
+      }
+      return 3;
+    case "firelight":
+      if (numActivated === 3) {
+        return 3;
+      } else if (numActivated >= 4) {
+        return 4;
+      }
+      return 2;
+    case "high roller":
+      return 1;
+    case "junker king":
+      return 1;
+    case "machine herald":
+      return 1;
+    case "rebel":
+      if (numActivated === 5 || numActivated === 6) {
+        return 5;
+      } else if (numActivated === 7 || numActivated === 8 || numActivated === 9) {
+        return 7;
+      } else if (numActivated >= 10) {
+        return 10;
+      }
+      return 3;
+    case "scrap":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated === 6 || numActivated === 7) {
+        return 6;
+      } else if (numActivated >= 9) {
+        return 9;
+      }
+      return 2;
+    case "ambusher":
+      if (numActivated === 3) {
+        return 3;
+      } else if (numActivated === 4) {
+        return 4;
+      } else if (numActivated >= 5) {
+        return 5;
+      }
+      return 2;
+    case "artillerist":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated >= 6) {
+        return 6;
+      }
+      return 2;
+    case "bruiser":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated >= 6) {
+        return 6;
+      } 
+      return 2;
+    case "dominator":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated >= 6) {
+        return 6;
+      }
+      return 2;
+    case "form swapper":
+      if (numActivated === 4) {
+        return 4;
+      }
+      return 2;
+    case "pit fighter":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated === 6 || numActivated === 7) {
+        return 6;
+      }  else if (numActivated >= 8) {
+        return 8;
+      }
+      return 2;
+    case "quickstriker":
+      if (numActivated === 3) {
+        return 3;
+      } else if (numActivated >= 4) {
+        return 4;
+      }
+      return 2;
+    case "sentinel":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated >= 6) {
+        return 6;
+      }
+      return 2;
+    case "sniper":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated >= 6) {
+        return 6;
+      }
+      return 2;
+    case "sorcerer":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated >= 6) {
+        return 6;
+      } 
+      return 2;
+    case "visionary":
+      if (numActivated === 4 || numActivated == 5) {
+        return 4;
+      } else if (numActivated >= 6) {
+        return 6;
+      }
+      return 2;
+    case "watcher":
+      if (numActivated === 4 || numActivated === 5) {
+        return 4;
+      } else if (numActivated >= 6) {
+        return 6;
+      }
+      return 2;
+  }
+
+  return 0;
+}
 
 function indexToTransformString(index: number): string {
 
