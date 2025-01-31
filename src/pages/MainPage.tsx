@@ -1,4 +1,4 @@
-import {  useEffect, useRef, useState } from "react";
+import {  useRef, useState } from "react";
 import Shop from "../components/Shop";
 import '../css/MainPage.css'
 import React from "react";
@@ -18,10 +18,11 @@ interface ClonePosition {
   y: number;
 }
 
+type level = "grey" | "bronze" | "silver" | "gold" | "prismatic" | "unique";
 
 export type TraitLevel = {
   name: string;
-  level: "grey" | "bronze" | "silver" | "gold" | "prismatic";
+  level: level;
   numActivated: number;
   numNeeded: number;
 }
@@ -48,16 +49,6 @@ function MainPage() {
   const updateSeed = (newSeed: string) => {
     setSeed(newSeed);
   }
-
-  // useEffect(() => {
-  //   let newTraits: TraitLevel[] = [];
-  //   // let a = totals.currentd
-  //   for (const unit in totals.current) {
-  //     console.log(unit);
-  //   }
-
-
-  // }, [totals])
 
   const sellUnit = (index: number) => {
     const soldUnit = boardState[index];
@@ -101,6 +92,26 @@ function MainPage() {
       }
       totals.current[soldUnit.name] -= 9;
     } 
+    
+    const numLeft = totals.current[soldUnit.name];
+    console.log(`numLeft = ${numLeft}`);
+    
+    if (numLeft <= 0) {
+      // remove from trait list
+      const newTraits = traits;
+      for (const trait of soldUnit.traits) {
+        const i = newTraits.findIndex((t) => t.name === trait);
+        if (i !== -1) {
+          newTraits[i].numActivated--;
+          newTraits[i].numNeeded = traitToNumNeeded(trait, newTraits[i].numActivated);
+          newTraits[i].level = traitToLevel(trait, newTraits[i].numActivated);
+          if (newTraits[i].numActivated === 0) {
+            newTraits.splice(i, 1);
+          }
+        }
+      }
+      setTraits(newTraits);
+    }
 
     setBoardState((prevBoardState) => {
       const newBoardState = [...prevBoardState];
@@ -214,12 +225,13 @@ function MainPage() {
           if (i !== -1) {
             newTraits[i].numActivated++;
             newTraits[i].numNeeded = traitToNumNeeded(trait, newTraits[i].numActivated);
+            newTraits[i].level = traitToLevel(trait, newTraits[i].numActivated);
           } else {
             newTraits.push({
               name: trait,
               numActivated: 1,
               numNeeded: traitToNumNeeded(trait, 1),
-              level: "grey"
+              level: traitToLevel(trait, 1)
             })
           }
         }
@@ -349,10 +361,20 @@ function MainPage() {
         <div className="border"><Info level={level} increaseLevel={increaseLevel} decreaseLevel={decreaseLevel} clearBoard={clearBoard}
         gold={gold} addGold={addGold} updateSeed={updateSeed} />
         </div>
-        <div className="flex">
-          <div className="border flex flex-col">Traits
+        <div className="grid grid-cols-[auto_1fr_1fr]">
+          <div className="border flex flex-col w-[150px] h-[420px] overflow-auto thin-scrollbar">Traits
+
             {traits.map((trait, index) => 
-              <div key={index}>
+              <div key={index} className="flex">
+                <svg width="32" height="32">
+                  {trait.level === "grey" ? 
+                    <>
+                      <path fill="#111" d="M13.856406460551018 0L27.712812921102035 8L27.712812921102035 24L13.856406460551018 32L0 24L0 8Z"></path>
+                      <path transform="translate(2, 2.5)" stroke="#555" stroke-width="1.5" fill="transparent" d="M11.90784930203603 0L23.81569860407206 6.875L23.81569860407206 20.625L11.90784930203603 27.5L0 20.625L0 6.875Z"></path>
+                    </> :
+                    <image transform="translate(0, 0)" width="28" href={traitLevelToHref(trait.level)}></image>
+                  }
+                </svg>
                 {trait.name} {trait.numActivated}/{trait.numNeeded}
               </div>
             )}
@@ -494,8 +516,240 @@ function extractHexID(elementID: string): number {
 }
 
 
-function unitToHref(unitName: string): string {
+function traitToHref(traitName: string): string {
   
+
+  return "";
+}
+
+function traitToLevel(traitName: string, numActivated: number): level {
+
+  switch (traitName.toLowerCase()) {
+    case "academy":
+      if (numActivated <= 2) {
+        return "grey";
+      } else if (numActivated === 3) {
+        return "bronze";
+      } else if (numActivated === 4) {
+        return "silver"
+      } 
+      return "gold";
+    case "automata":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      } else {
+        return "gold";
+      }
+    case "banished mage":
+      return "unique";
+    case "blood hunter":
+      return "unique";
+    case "black rose":
+      if (numActivated < 3) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 5) {
+        return "silver";
+      } else if (numActivated < 7) {
+        return "gold";
+      } 
+      return "prismatic";
+    case "chem-baron":
+      if (numActivated < 3) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      }
+      return "gold";
+    case "conqueror":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      } else if (numActivated < 9) {
+        return "gold";
+      }
+      return "prismatic";
+    case "emissary":
+      if (numActivated === 1) {
+        return "bronze";
+      } else if (numActivated === 4) {
+        return "gold";
+      }
+      return "grey";
+    case "enforcer":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      } else if (numActivated < 10) {
+        return "gold";
+      }
+      return "prismatic";
+    case "experiment":
+      if (numActivated < 3) {
+        return "grey";
+      } else if (numActivated < 5) {
+        return "bronze";
+      } 
+      return "gold";
+    case "family":
+      if (numActivated < 3) {
+        return "grey";
+      }
+      return "gold"
+    case "firelight":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 3) {
+        return "bronze";
+      } 
+      return "gold";
+    case "high roller":
+      return "unique";
+    case "junker king":
+      return "unique";
+    case "machine herald":
+      return "unique"
+    case "rebel":
+      if (numActivated < 3) {
+        return "grey";
+      } else if (numActivated < 5) {
+        return "bronze";
+      } else if (numActivated < 7) {
+        return "silver";
+      } else if (numActivated < 10) {
+        return "gold";
+      }
+      return "prismatic"
+    case "scrap":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      } 
+      return "gold";
+    case "ambusher":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 3) {
+        return "bronze";
+      } else if (numActivated < 5) {
+        return "silver";
+      }
+      return "gold"
+    case "artillerist":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } 
+      return "gold";
+    case "bruiser":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      }
+      return "gold";
+    case "dominator":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      }
+      return "gold";
+    case "form swapper":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      }
+      return "gold";
+    case "pit fighter":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      }
+      return "gold"
+    case "quickstriker":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 3) {
+        return "bronze";
+      } else if (numActivated < 4) {
+        return "silver";
+      }
+      return "gold";
+    case "sentinel":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      }
+      return "gold";
+    case "sniper":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      }
+      return "gold";
+    case "sorcerer":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      }
+      return "gold";
+    case "visionary":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      }
+      return "gold";
+    case "watcher":
+      if (numActivated < 2) {
+        return "grey";
+      } else if (numActivated < 4) {
+        return "bronze";
+      } else if (numActivated < 6) {
+        return "silver";
+      }
+      return "gold";
+  }
+  return  "grey";
+}
+
+function unitToHref(unitName: string): string {
+
   switch (unitName.toLowerCase()) {
     case "amumu":
       return "https://ap.tft.tools/img/ts13/face_full/TFT13_amumu.jpg?w=98"
@@ -763,8 +1017,25 @@ export const unitToTraits = (unitName: string): string[] => {
 }
 
 
-const traitToNumNeeded = (traitName: string, numActivated: number ): number => {
+const traitLevelToHref = (traitLevel: level): string => {
 
+  switch (traitLevel) {
+    case "grey":
+      return "";
+    case "bronze":
+      return "https://ap.tft.tools/img/general/trait_1.png?w=28";
+    case "silver":
+      return "https://ap.tft.tools/img/general/trait_2.png?w=28"; 
+    case "gold":
+      return "https://ap.tft.tools/img/general/trait_3.png?w=28";
+    case "prismatic":
+      return "https://ap.tft.tools/img/general/trait_4.png?w=28";
+    case "unique":
+      return "https://ap.tft.tools/img/general/trait_5.png?w=28";
+  }
+}
+
+const traitToNumNeeded = (traitName: string, numActivated: number ): number => {
   // console.log(`input: ${traitName} ${numActivated}`)
   switch (traitName.toLowerCase()) {
     case "academy":

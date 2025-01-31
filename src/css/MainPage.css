@@ -5,15 +5,28 @@
     background: #3B8686; 
 }
 
-.maddie {
-    background-image: url('https://cdn.metatft.com/file/metatft/champions/tft13_shooter.png');
-    background-size: cover;
-    background-position: center;   
-}
-
 .unselectable {
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
 }
+
+/* Thin scrollbar */
+.thin-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+  }
+  
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px; 
+  }
+  
+  .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  
