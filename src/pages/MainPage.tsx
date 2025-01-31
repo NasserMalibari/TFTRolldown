@@ -362,17 +362,21 @@ function MainPage() {
         gold={gold} addGold={addGold} updateSeed={updateSeed} />
         </div>
         <div className="grid grid-cols-[auto_1fr_1fr]">
-          <div className="border flex flex-col w-[150px] h-[420px] overflow-auto thin-scrollbar">Traits
+          <div className="border flex flex-col w-[150px] h-[420px] overflow-auto thin-scrollbar gap-[3px]">Traits
 
             {traits.map((trait, index) => 
               <div key={index} className="flex">
-                <svg width="32" height="32">
+                <svg width="32" height="32" viewBox="-4 -2 36 36">
                   {trait.level === "grey" ? 
                     <>
                       <path fill="#111" d="M13.856406460551018 0L27.712812921102035 8L27.712812921102035 24L13.856406460551018 32L0 24L0 8Z"></path>
                       <path transform="translate(2, 2.5)" stroke="#555" stroke-width="1.5" fill="transparent" d="M11.90784930203603 0L23.81569860407206 6.875L23.81569860407206 20.625L11.90784930203603 27.5L0 20.625L0 6.875Z"></path>
+                      <image x="4.25" y="6.25" width="19.5" height="19.5" opacity="0.87" href={traitToHref(trait.name, false)}></image>
                     </> :
-                    <image transform="translate(0, 0)" width="28" href={traitLevelToHref(trait.level)}></image>
+                    <>
+                      <image transform="translate(0, 0)" width="28" href={traitLevelToHref(trait.level)}></image>
+                      <image x="3" y="4.5" width="22" height="22" href={traitToHref(trait.name, true)}></image>
+                    </>
                   }
                 </svg>
                 {trait.name} {trait.numActivated}/{trait.numNeeded}
@@ -516,10 +520,74 @@ function extractHexID(elementID: string): number {
 }
 
 
-function traitToHref(traitName: string): string {
-  
+function traitToHref(traitName: string, black: boolean): string {
 
-  return "";
+  const baseUrl = "https://ap.tft.tools/static/trait-icons/TFT13_";
+  const suffix = black ? "" : "_w"; 
+
+  switch (traitName.toLowerCase()) {
+    case "academy":
+      return `${baseUrl}Academy${suffix}.svg`;
+    case "automata":
+      return `${baseUrl}Hextech${suffix}.svg`;
+    case "banished mage":
+      return `${baseUrl}MissMageTrait.svg`;
+    case "blood hunter":
+      return `${baseUrl}BloodHunter.svg`;
+    case "black rose":
+      return `${baseUrl}Cabal${suffix}.svg`;
+    case "chem-baron":
+      return `${baseUrl}Crime${suffix}.svg`;
+    case "conqueror":
+      return `${baseUrl}Warband${suffix}.svg`;
+    case "emissary":
+      return `${baseUrl}Ambassador.svg`;
+    case "enforcer":
+      return `${baseUrl}Squad${suffix}.svg`;
+    case "experiment":
+      return `${baseUrl}Experiment${suffix}.svg`;
+    case "family":
+      return `${baseUrl}Family${suffix}.svg`;
+    case "firelight":
+      return `${baseUrl}Hoverboard${suffix}.svg`;
+    case "high roller":
+      return `${baseUrl}HighRoller.svg`;
+    case "junker king":
+      return `${baseUrl}JunkerKing.svg`;
+    case "machine herald":
+      return `${baseUrl}MachineHerald.svg`;
+    case "rebel":
+      return `${baseUrl}Rebel${suffix}.svg`;
+    case "scrap":
+      return `${baseUrl}Scrap${suffix}.svg`;
+    case "ambusher":
+      return `${baseUrl}Ambusher${suffix}.svg`;
+    case "artillerist":
+      return `${baseUrl}Martialist${suffix}.svg`;
+    case "bruiser":
+      return `${baseUrl}Bruiser${suffix}.svg`;
+    case "dominator":
+      return `${baseUrl}Infused${suffix}.svg`;
+    case "form swapper":
+      return `${baseUrl}FormSwapper${suffix}.svg`;
+    case "pit fighter":
+      return `${baseUrl}Pugilist${suffix}.svg`;
+    case "quickstriker":
+      return `${baseUrl}Challenger${suffix}.svg`;
+    case "sentinel":
+      return `${baseUrl}Titan${suffix}.svg`;
+    case "sniper":
+      return `${baseUrl}Sniper${suffix}.svg`;
+    case "sorcerer":
+      return `${baseUrl}Sorcerer${suffix}.svg`;
+    case "visionary":
+      return `${baseUrl}Invoker${suffix}.svg`;
+    case "watcher":
+      return `${baseUrl}Watcher${suffix}.svg`;
+    default:
+      return "";
+  }
+
 }
 
 function traitToLevel(traitName: string, numActivated: number): level {
