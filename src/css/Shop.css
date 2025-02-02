@@ -1,11 +1,13 @@
 .shopSlot {
-    width: 120px;
+    width: 181px;
+    height: 131px;
     background-color: lightblue;
     border: 1px solid black;
 }
 
 .purchased {
-    width: 120px;
+    width: 181px;
+    height: 131px;
     background-color: grey;
     border: 1px solid black;
     cursor: not-allowed;

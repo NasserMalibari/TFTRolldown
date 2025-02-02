@@ -13,12 +13,30 @@ export type Unit = {
   traits: string[];
 }
 
-interface ClonePosition {
-  x: number;
-  y: number;
-}
+// interface ClonePosition {
+//   x: number;
+//   y: number;
+// }
 
-type level = "grey" | "bronze" | "silver" | "gold" | "prismatic" | "unique";
+type level = "grey" | "bronze" | "silver" | "gold" | "unique" | "prismatic";
+
+const levelPriority: Record<level, number> = {
+  unique: 6,
+  prismatic: 5,
+  gold: 4,
+  silver: 3,
+  bronze: 2,
+  grey: 1,
+};
+
+export type Stage = ["1-1", "1-2", "1-3", "1-4", "2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
+  "3-1", "3-2", "3-3", "3-5", "3-6", "3-7",
+  "4-1", "4-2", "4-3", "4-5", "4-6", "4-7",
+  "5-1", "5-2", "5-3", "5-5", "5-6", "5-7",
+  "6-1", "6-2", "6-3", "6-5", "6-6", "6-7",
+  "7-1", "7-2", "7-3", "7-5", "7-6", "7-7",
+];
+
 
 export type TraitLevel = {
   name: string;
@@ -35,8 +53,9 @@ function MainPage() {
   const [level, setLevel] = useState(1);
   // const [isDragging, setIsDragging] = useState<boolean>(false);
   const isDraggingRef = React.useRef(false);
-  const [clonePosition, setClonePosition] = useState<ClonePosition>({ x: 0, y: 0 });
+  // const [clonePosition, setClonePosition] = useState<ClonePosition>({ x: 0, y: 0 });
   const [clonedGroup, setClonedGroup] = useState<SVGElement  | null>(null);
+  const [stage, setStage] = useState<Stage[number]>("1-1");
 
   const totals = useRef<{ [key: string]: number }>({});
 
@@ -48,6 +67,40 @@ function MainPage() {
 
   const updateSeed = (newSeed: string) => {
     setSeed(newSeed);
+  }
+
+  const increaseStage = (): void => {
+    const stages: Stage = ["1-1", "1-2", "1-3", "1-4", "2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
+      "3-1", "3-2", "3-3", "3-5", "3-6", "3-7",
+      "4-1", "4-2", "4-3", "4-5", "4-6", "4-7",
+      "5-1", "5-2", "5-3", "5-5", "5-6", "5-7",
+      "6-1", "6-2", "6-3", "6-5", "6-6", "6-7",
+      "7-1", "7-2", "7-3", "7-5", "7-6", "7-7",
+    ];;
+    const currIndex = stages.indexOf(stage);
+
+    if (currIndex >= stages.length - 1) {
+      return;
+    }
+
+    setStage(stages[currIndex + 1]);
+  }
+
+  const decreaseStage = (): void => {
+    const stages: Stage = ["1-1", "1-2", "1-3", "1-4", "2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
+      "3-1", "3-2", "3-3", "3-5", "3-6", "3-7",
+      "4-1", "4-2", "4-3", "4-5", "4-6", "4-7",
+      "5-1", "5-2", "5-3", "5-5", "5-6", "5-7",
+      "6-1", "6-2", "6-3", "6-5", "6-6", "6-7",
+      "7-1", "7-2", "7-3", "7-5", "7-6", "7-7",
+    ];
+    const currIndex = stages.indexOf(stage);
+
+    if (currIndex <= 0) {
+      return;
+    }
+
+    setStage(stages[currIndex - 1]);
   }
 
   const sellUnit = (index: number) => {
@@ -151,19 +204,19 @@ function MainPage() {
     setClonedGroup(clonedGroupElement);
     // setIsDragging(true);
   
-    setClonePosition({
-      x: e.pageX,
-      y: e.pageY,
-    });
+    // setClonePosition({
+    //   x: e.pageX,
+    //   y: e.pageY,
+    // });
   
-    const onMouseMove = (e: MouseEvent): void => {
-      if (isDraggingRef.current) {
-        setClonePosition({
-          x: e.pageX,
-          y: e.pageY,
-        });
-      }
-    };
+    // const onMouseMove = (e: MouseEvent): void => {
+    //   if (isDraggingRef.current) {
+    //     // setClonePosition({
+    //     //   x: e.pageX,
+    //     //   y: e.pageY,
+    //     // });
+    //   }
+    // };
   
     const onMouseUp = (e2: MouseEvent): void => {
       isDraggingRef.current = false;
@@ -171,7 +224,7 @@ function MainPage() {
       let element = (e2.target as HTMLElement);
 
       if (element.id === "SELL") {
-        document.removeEventListener("mousemove", onMouseMove);
+        // document.removeEventListener("mousemove", onMouseMove);
         document.removeEventListener("mouseup", onMouseUp);
         sellUnit(fromHexID);
         return;
@@ -185,6 +238,8 @@ function MainPage() {
       
       if (!element?.classList.contains("hex")) {
         console.error("mouseUp on non-hex");
+        // document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
         return;
       }
 
@@ -199,11 +254,11 @@ function MainPage() {
 
       setClonedGroup(null);
   
-      document.removeEventListener("mousemove", onMouseMove);
+      // document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
     };
   
-    document.addEventListener("mousemove", onMouseMove);
+    // document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
   };
 
@@ -237,6 +292,8 @@ function MainPage() {
         }
       }
       newTraits.sort((a, b) => {
+        if (levelPriority[a.level] > levelPriority[b.level]) return -1;
+        if (levelPriority[a.level] < levelPriority[b.level]) return 1;
         return b.numActivated - a.numActivated;
       })
       setTraits(newTraits);
@@ -339,9 +396,9 @@ function MainPage() {
     }
 
     setBoardState((prevBoardState) => {
-      const newBoardState = [...prevBoardState]; // Create a copy of the array
+      const newBoardState = [...prevBoardState];
       [newBoardState[from], newBoardState[to]] = [newBoardState[to], newBoardState[from]]; // Swap elements
-      return newBoardState; // Update the state with the new array
+      return newBoardState; 
     });
   }
   
@@ -359,11 +416,12 @@ function MainPage() {
         cursor: isDraggingRef.current ? 'pointer' : 'default'
       }}>
         <div className="border"><Info level={level} increaseLevel={increaseLevel} decreaseLevel={decreaseLevel} clearBoard={clearBoard}
-        gold={gold} addGold={addGold} updateSeed={updateSeed} />
+        gold={gold} addGold={addGold} updateSeed={updateSeed} stage={stage} increaseStage={increaseStage}
+        decreaseStage={decreaseStage}
+        />
         </div>
         <div className="grid grid-cols-[auto_1fr_1fr]">
-          <div className="border flex flex-col w-[150px] h-[420px] overflow-auto thin-scrollbar gap-[3px]">Traits
-
+          <div className="border flex flex-col w-[150px] h-[420px] overflow-auto thin-scrollbar gap-[3px] unselectable">Traits
             {traits.map((trait, index) => 
               <div key={index} className="flex">
                 <svg width="32" height="32" viewBox="-4 -2 36 36">
@@ -491,8 +549,8 @@ function MainPage() {
             </svg>
           </div>
         </div>
-        <Shop buyUnit={buyUnit} level={level} addGold={addGold} seed={seed} />
-        <div className="flex items-center justify-center w-full bg-gray-50 h-40"
+        <Shop buyUnit={buyUnit} level={level} addGold={addGold} seed={seed} stage={stage}/>
+        <div className="flex items-center justify-center w-full bg-gray-50 h-40 unselectable"
           id="SELL">
             SELL
         </div>
@@ -954,133 +1012,133 @@ export const unitToTraits = (unitName: string): string[] => {
 
   switch(unitName.toLowerCase()) {
     case "amumu":
-      return ["automata", "watcher"];
+      return ["Automata", "Watcher"];
     case "darius":
-      return ["conqueror", "watcher"];
+      return ["Conqueror", "Watcher"];
     case "draven":
-      return ["conqueror", "pit fighter"];
+      return ["Conqueror", "Pit Fighter"];
     case "irelia":
-      return ["rebel", "sentinel"];
+      return ["Rebel", "Sentinel"];
     case "lux":
-      return ["academy", "sorcerer"];
+      return ["Academy", "Sorcerer"];
     case "maddie":
-      return ["enforcer", "sniper"];
+      return ["Enforcer", "Sniper"];
     case "morgana":
-      return ["black rose", "visionary"];
+      return ["Black Rose", "Visionary"];
     case "powder":
-      return ["family", "scrap", "ambusher"];
+      return ["Family", "Scrap", "Ambusher"];
     case "singed":
-      return ["chem-baron", "sentinel"];
+      return ["Chem-Baron", "Sentinel"];
     case "steb":
-      return ["enforcer", "bruiser"];
+      return ["Enforcer", "Bruiser"];
     case "trundle":
-      return ["scrap", "bruiser"];
+      return ["Scrap", "Bruiser"];
     case "vex":
-      return ["rebel", "visionary"];
+      return ["Rebel", "Visionary"];
     case "violet":
-      return ["family", "pit fighter"];
+      return ["Family", "Pit Fighter"];
     case "zyra":
-      return ["experiment", "sorcerer"];
+      return ["Experiment", "Sorcerer"];
     case "akali":
-      return ["rebel", "quickstriker"];
+      return ["Rebel", "Quickstriker"];
     case "camille":
-      return ["enforcer", "ambusher"];
+      return ["Enforcer", "Ambusher"];
     case "leona":
-      return ["academy", "sentinel"];
+      return ["Academy", "Sentinel"];
     case "nocturne":
-      return ["automata", "quickstriker"];
+      return ["Automata", "Quickstriker"];
     case "rell":
-      return ["conqueror", "sentinel", "visionary"];
+      return ["Conqueror", "Sentinel", "Visionary"];
     case "renata glasc":
-      return ["chem-baron", "visionary"];
+      return ["Chem-Baron", "Visionary"];
     case "sett":
-      return ["rebel", "bruiser"];
+      return ["Rebel", "Bruiser"];
     case "tristana":
-      return ["emissary", "artillerist"];
+      return ["Emissary", "Artillerist"];
     case "urgot":
-      return ["experiment", "pit fighter", "artillerist"];
+      return ["Experiment", "Pit Fighter", "Artillerist"];
     case "vander":
-      return ["family", "watcher"];
+      return ["Family", "Watcher"];
     case "vladimir":
-      return ["black rose", "watcher", "sorcerer"];
+      return ["Black Rose", "Watcher", "Sorcerer"];
     case "zeri":
-      return ["firelight", "sniper"];
+      return ["Firelight", "Sniper"];
     case "ziggs":
-      return ["scrap", "dominator"];
+      return ["Scrap", "Dominator"];
     case "blitzcrank":
-      return ["automata", "dominator"];
+      return ["Automata", "Dominator"];
     case "cassiopeia":
-      return ["black rose", "dominator"];
+      return ["Black Rose", "Dominator"];
     case "ezreal":
-      return ["academy", "rebel", "artillerist"];
+      return ["Academy", "Rebel", "Artillerist"];
     case "gangplank":
-      return ["scrap", "form swapper", "pit fighter"];
+      return ["Scrap", "Form Swapper", "Pit Fighter"];
     case "kog'maw":
-      return ["automata", "sniper"];
+      return ["Automata", "Sniper"];
     case "loris":
-      return ["enforcer", "sentinel"];
+      return ["Enforcer", "Sentinel"];
     case "nami":
-      return ["emissary", "sorcerer"];
+      return ["Emissary", "Sorcerer"];
     case "nunu":
-      return ["experiment", "bruiser", "visionary"];
+      return ["Experiment", "Bruiser", "Visionary"];
     case "renni":
-      return ["chem-baron", "bruiser"];
+      return ["Chem-Baron", "Bruiser"];
     case "scar":
-      return ["firelight", "watcher"];
+      return ["Firelight", "Watcher"];
     case "smeech":
-      return ["chem-baron", "ambusher"];
+      return ["Chem-Baron", "Ambusher"];
     case "swain":
-      return ["conqueror", "form swapper", "sorcerer"];
+      return ["Conqueror", "Form Swapper", "Sorcerer"];
     case "twisted fate":
-      return ["enforcer", "quickstriker"];
+      return ["Enforcer", "Quickstriker"];
     case "ambessa":
-      return ["emissary", "conqueror", "quickstriker"];
+      return ["Emissary", "Conqueror", "Quickstriker"];
     case "corki":
-      return ["scrap", "artillerist"];
+      return ["Scrap", "Artillerist"];
     case "dr. mundo":
-      return ["experiment", "dominator"];
+      return ["Experiment", "Dominator"];
     case "ekko":
-      return ["firelight", "scrap", "ambusher"];
+      return ["Firelight", "Scrap", "Ambusher"];
     case "elise":
-      return ["black rose", "form swapper", "bruiser"];
+      return ["Black Rose", "Form Swapper", "Bruiser"];
     case "garen":
-      return ["emissary", "watcher"];
+      return ["Emissary", "Watcher"];
     case "heimerdinger":
-      return ["academy", "visionary"];
+      return ["Academy", "Visionary"];
     case "illaoi":
-      return ["rebel", "sentinel"];
+      return ["Rebel", "Sentinel"];
     case "silco":
-      return ["chem-baron", "dominator"];
+      return ["Chem-Baron", "Dominator"];
     case "twitch":
-      return ["experiment", "sniper"];
+      return ["Experiment", "Sniper"];
     case "vi":
-      return ["enforcer", "pit fighter"];
+      return ["Enforcer", "Pit Fighter"];
     case "zoe":
-      return ["rebel", "sorcerer"];
+      return ["Rebel", "Sorcerer"];
     case "caitlyn":
-      return ["enforcer", "sniper"];
+      return ["Enforcer", "Sniper"];
     case "jayce":
-      return ["academy", "form swapper"];
+      return ["Academy", "Form Swapper"];
     case "jinx":
-      return ["rebel", "ambusher"];
+      return ["Rebel", "Ambusher"];
     case "leblanc":
-      return ["black rose", "sorcerer"];
+      return ["Black Rose", "Sorcerer"];
     case "malzahar":
-      return ["automata", "visionary"];
+      return ["Automata", "Visionary"];
     case "mordekaiser":
-      return ["conqueror", "dominator"];
+      return ["Conqueror", "Dominator"];
     case "rumble":
-      return ["junker king", "scrap", "sentinel"];
+      return ["Junker King", "Scrap", "Sentinel"];
     case "sevika":
-      return ["high roller", "chem-baron", "pit fighter"];
+      return ["High Roller", "Chem-Baron", "Pit Fighter"];
     case "mel":
-      return ["banished mage"];
+      return ["Banished Mage"];
     case "viktor":
-      return ["machine heralds"];
+      return ["Machine Herald"];
     case "warwick":
-      return ["experiment", "blood hunter"];
+      return ["Experiment", "Blood Hunter"];
     default:
-      return [];
+      return [];    
   }
 }
 

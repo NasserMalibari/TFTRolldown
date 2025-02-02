@@ -7,10 +7,13 @@ interface InfoProps {
   gold: number;
   addGold: (amount: number) => void;
   updateSeed: (newSeed: string) => void;
+  stage: string;
+  increaseStage: () => void;
+  decreaseStage: () => void;
 }
 
 
-function Info({level, decreaseLevel, increaseLevel, clearBoard, gold, addGold, updateSeed}: InfoProps) {
+function Info({level, decreaseLevel, increaseLevel, clearBoard, gold, addGold, updateSeed, stage, increaseStage, decreaseStage}: InfoProps) {
 
   return (
     <>
@@ -28,6 +31,16 @@ function Info({level, decreaseLevel, increaseLevel, clearBoard, gold, addGold, u
               ←</button>
             <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
             onClick={increaseLevel}>→</button>
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <div>Stage: {stage}</div>
+          <div>
+            <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+            onClick={decreaseStage}>
+              ←</button>
+            <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+            onClick={increaseStage}>→</button>
           </div>
         </div>
         <div>

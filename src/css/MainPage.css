@@ -28,5 +28,6 @@
   
   .thin-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #555;
+    cursor: pointer;
   }
   
