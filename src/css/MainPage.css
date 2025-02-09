@@ -12,6 +12,11 @@
     -ms-user-select: none;
 }
 
+.defaultBG {
+  background-color: #0D2B4F;
+  color: white;
+}
+
 /* Thin scrollbar */
 .thin-scrollbar::-webkit-scrollbar {
     width: 4px;

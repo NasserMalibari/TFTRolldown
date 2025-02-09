@@ -1,4 +1,4 @@
-import { Unit, unitToTraits } from "../pages/MainPage";
+import { levelToXpNeeded, Unit, unitToTraits } from "../pages/MainPage";
 import "../css/Shop.css"
 import "../css/MainPage.css"
 import { useEffect, useMemo, useState } from "react";
@@ -11,6 +11,8 @@ interface ShopProps {
   addGold: (amount: number) => void;
   seed: string | undefined;
   stage: string;
+  xp: number;
+  addXp: (amount: number) => void;
 }
 
 interface ShopSlot {
@@ -19,7 +21,7 @@ interface ShopSlot {
   cost: number;
 }
 
-function Shop( {buyUnit, level, addGold, seed, stage}: ShopProps ) {
+function Shop( {buyUnit, level, addGold, seed, stage, xp, addXp}: ShopProps ) {
 
   useMemo(() => {
     if (seed !== undefined) {
@@ -164,6 +166,7 @@ function Shop( {buyUnit, level, addGold, seed, stage}: ShopProps ) {
     if (stageToSixCost(stage, level)) {
       const ran_number = Math.random();
       const randomIdx = Math.floor(ran_number * allUnits[6]?.length);
+      console.log('changing to 6 cost');
       returnLst[4] = ({
         purchased: false,
         cost: 6,
@@ -183,13 +186,34 @@ function Shop( {buyUnit, level, addGold, seed, stage}: ShopProps ) {
 
   return (
     <>
-      <div className="border flex h-32 unselectable">
+      <div className="flex flex-col">
+        <div className="flex" id="aboveShop">
+          <div className="flex flex-col w-[150px] border-2 border-solid rightTrapeze defaultBG" id="xpSection">
+            <div className="flex justify-between">
+              <div className="">Lvl. {level}</div>
+              {level < 10 && 
+              <div className="mr-6">
+                {xp} / {levelToXpNeeded(level)}
+              </div>
+              }
+
+            </div>
+            <div className="flex justify-start"  id="progressBar">
+              <progress value={xp / levelToXpNeeded(level)} className="w-[80%] ml-1"/>
+            </div>
+
+          </div>
+        </div>
+        <div className="border flex h-32 unselectable">
           {/* SHOP */}
           <div className="flex flex-col h-full">
-            <button className="border h-full flex items-center justify-center">
+            <button className="border h-full flex items-center justify-center"
+              disabled={level >= 10}
+              onClick={() => {addXp(4)}}
+            >
               Buy XP
             </button>
-            <button 
+            <button
               className="border h-full flex items-center justify-center"
               onClick={(reroll)}>
               Reroll
@@ -199,7 +223,6 @@ function Shop( {buyUnit, level, addGold, seed, stage}: ShopProps ) {
           {/* <div className="shopSlot cursor-pointer flex justify-center items-center" id="shop1"> */}
             {shopSlots.map((slot, index) =>
               !slot.purchased ?
-                
                 <div key={index} className="shopSlot cursor-pointer flex justify-center items-center"
                   onClick={() => {buyUnit({
                     name: slot.unit,
@@ -226,6 +249,7 @@ function Shop( {buyUnit, level, addGold, seed, stage}: ShopProps ) {
               )}
           </div>
           </div>
+      </div>
     </>
     )
 }
@@ -411,6 +435,7 @@ const stageToSixCost = (stage: string, level: number): boolean => {
       }
       return false;
     case "7-7":
+      console.log(ran_number);
       if (ran_number <= 0.00098) {
         return true;
       } else if (isLevelTen && ran_number <= 0.0208) {

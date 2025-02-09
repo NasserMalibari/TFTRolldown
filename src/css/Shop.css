@@ -12,3 +12,9 @@
     border: 1px solid black;
     cursor: not-allowed;
 }
+
+.rightTrapeze {
+    /* background-color: navy; */
+    /* background-color: red; */
+    clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
+}

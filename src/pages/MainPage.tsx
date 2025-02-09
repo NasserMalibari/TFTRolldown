@@ -29,7 +29,7 @@ const levelPriority: Record<level, number> = {
   grey: 1,
 };
 
-export type Stage = ["1-1", "1-2", "1-3", "1-4", "2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
+export type Stage = ["1-2", "1-3", "1-4", "2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
   "3-1", "3-2", "3-3", "3-5", "3-6", "3-7",
   "4-1", "4-2", "4-3", "4-5", "4-6", "4-7",
   "5-1", "5-2", "5-3", "5-5", "5-6", "5-7",
@@ -55,12 +55,41 @@ function MainPage() {
   const isDraggingRef = React.useRef(false);
   // const [clonePosition, setClonePosition] = useState<ClonePosition>({ x: 0, y: 0 });
   const [clonedGroup, setClonedGroup] = useState<SVGElement  | null>(null);
-  const [stage, setStage] = useState<Stage[number]>("1-1");
+  const [stage, setStage] = useState<Stage[number]>("1-2");
+  const [xp, setXp] = useState(0);
 
   const totals = useRef<{ [key: string]: number }>({});
 
   const [seed, setSeed] = useState<string | undefined>(undefined);
   const [traits, setTraits] = useState<TraitLevel[]>([]);
+
+  const addXp = (amount: number) => {
+    // console.log(`${amount} ${xp} ${level}`)
+    let currLevel = level;
+    let currXp = xp + amount;
+
+    if (amount > 0) {
+      while (currXp >= levelToXpNeeded(currLevel)) {
+        currXp -= levelToXpNeeded(currLevel);
+        currLevel += 1;
+        if (currLevel >= 10) {
+          break;
+        }
+      }
+    } else {
+      while (currXp < 0) {
+        currXp = levelToXpNeeded(currLevel - 1) + currXp;
+        currLevel -= 1;
+        if (currLevel <= 1) {
+          break;
+        }
+      }
+    }
+    setLevel(Math.min(Math.max(0, currLevel), 10));
+    setXp(currXp);
+  }
+
+
   const addGold = (amount: number) => {
     setGold(prev => Math.max(0, prev + amount));
   }
@@ -70,7 +99,7 @@ function MainPage() {
   }
 
   const increaseStage = (): void => {
-    const stages: Stage = ["1-1", "1-2", "1-3", "1-4", "2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
+    const stages: Stage = ["1-2", "1-3", "1-4", "2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
       "3-1", "3-2", "3-3", "3-5", "3-6", "3-7",
       "4-1", "4-2", "4-3", "4-5", "4-6", "4-7",
       "5-1", "5-2", "5-3", "5-5", "5-6", "5-7",
@@ -84,10 +113,11 @@ function MainPage() {
     }
 
     setStage(stages[currIndex + 1]);
+    addXp(2);
   }
 
   const decreaseStage = (): void => {
-    const stages: Stage = ["1-1", "1-2", "1-3", "1-4", "2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
+    const stages: Stage = ["1-2", "1-3", "1-4", "2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
       "3-1", "3-2", "3-3", "3-5", "3-6", "3-7",
       "4-1", "4-2", "4-3", "4-5", "4-6", "4-7",
       "5-1", "5-2", "5-3", "5-5", "5-6", "5-7",
@@ -101,6 +131,7 @@ function MainPage() {
     }
 
     setStage(stages[currIndex - 1]);
+    addXp(-2);
   }
 
   const sellUnit = (index: number) => {
@@ -181,10 +212,12 @@ function MainPage() {
   
   const increaseLevel = () => {
     setLevel((level) => Math.min(level + 1, 10));
+    setXp(0);
   }
 
   const decreaseLevel = () => {
     setLevel((level) => Math.max(level - 1, 1));
+    setXp(0);
   }
 
   const handleMouseDown = (e: React.MouseEvent): void => {
@@ -428,7 +461,7 @@ function MainPage() {
                   {trait.level === "grey" ? 
                     <>
                       <path fill="#111" d="M13.856406460551018 0L27.712812921102035 8L27.712812921102035 24L13.856406460551018 32L0 24L0 8Z"></path>
-                      <path transform="translate(2, 2.5)" stroke="#555" stroke-width="1.5" fill="transparent" d="M11.90784930203603 0L23.81569860407206 6.875L23.81569860407206 20.625L11.90784930203603 27.5L0 20.625L0 6.875Z"></path>
+                      <path transform="translate(2, 2.5)" stroke="#555" strokeWidth="1.5" fill="transparent" d="M11.90784930203603 0L23.81569860407206 6.875L23.81569860407206 20.625L11.90784930203603 27.5L0 20.625L0 6.875Z"></path>
                       <image x="4.25" y="6.25" width="19.5" height="19.5" opacity="0.87" href={traitToHref(trait.name, false)}></image>
                     </> :
                     <>
@@ -441,7 +474,7 @@ function MainPage() {
               </div>
             )}
           </div>
-          <div className="border" id="board">
+          <div className="border defaultBG" id="board">
                   {/* Render the clone group */}
                 {clonedGroup && (
                   // clonedGroupElementRef.current
@@ -549,7 +582,7 @@ function MainPage() {
             </svg>
           </div>
         </div>
-        <Shop buyUnit={buyUnit} level={level} addGold={addGold} seed={seed} stage={stage}/>
+        <Shop buyUnit={buyUnit} level={level} addGold={addGold} seed={seed} stage={stage} xp={xp} addXp={addXp}/>
         <div className="flex items-center justify-center w-full bg-gray-50 h-40 unselectable"
           id="SELL">
             SELL
@@ -561,6 +594,32 @@ function MainPage() {
 }
 
 export default MainPage;
+
+// xp needed from current level, to proceed to next level
+export function levelToXpNeeded(level: number): number {
+  switch (level) {
+    case 1:
+      return 2;
+    case 2:
+      return 2;
+    case 3:
+      return 6;
+    case 4:
+      return 10;
+    case 5:
+      return 20;
+    case 6:
+      return 36;
+    case 7:
+      return 48;
+    case 8:
+      return 76;
+    case 9:
+      return 84;
+    default:
+      return 0;
+  }
+}
 
 function extractHexID(elementID: string): number {
   let hexID = -1;
