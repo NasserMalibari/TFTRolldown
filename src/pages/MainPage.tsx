@@ -442,16 +442,26 @@ function MainPage() {
     totals.current = {};
   }
 
+  const resetState = () => {
+    setGold(0);
+    setLevel(1);
+    setBoardState(new Array(28).fill(null));
+    setHovered(new Array(28).fill(false));
+    setStage("1-2");
+    setSeed(undefined);
+  }
+
   return (
     <>
-      <h1 className="text-4xl text-blue-500">Vite Project</h1>
+      {/* <h1 className="text-4xl text-blue-500">Vite Project</h1> */}
       <div className="flex flex-col" style={{
         cursor: isDraggingRef.current ? 'pointer' : 'default'
       }}>
-        <div className="border"><Info level={level} increaseLevel={increaseLevel} decreaseLevel={decreaseLevel} clearBoard={clearBoard}
-        gold={gold} addGold={addGold} updateSeed={updateSeed} stage={stage} increaseStage={increaseStage}
-        decreaseStage={decreaseStage}
-        />
+        <div className="border pt-2">
+          <Info level={level} increaseLevel={increaseLevel} decreaseLevel={decreaseLevel} clearBoard={clearBoard}
+          gold={gold} addGold={addGold} updateSeed={updateSeed} stage={stage} increaseStage={increaseStage}
+          decreaseStage={decreaseStage} resetState={resetState}
+          />
         </div>
         <div className="grid grid-cols-[auto_1fr_1fr]">
           <div className="border flex flex-col w-[150px] h-[420px] overflow-auto thin-scrollbar gap-[3px] unselectable">Traits

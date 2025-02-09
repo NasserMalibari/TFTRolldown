@@ -33,12 +33,15 @@ function Shop( {buyUnit, level, addGold, seed, stage, xp, addXp}: ShopProps ) {
     const onKeyDown = (e: { key: string; }) => {
       if (e.key === 'd') {
         reroll();
+      } else if (e.key === 'f' && level < 10) {
+        addXp(4);
       }
     }
+
    
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [level]);
+  }, [level, xp]);
 
   const oneCostChamps = ["Singed", "Powder", "Violet", "Lux", "Zyra", "Darius", "Draven", "Amumu", "Irelia", "Maddie", "Trundle", "Steb", "Morgana", "Vex"];
   const twoCostChamps = ["Akali", "Camille", "Leona", "Nocturne", "Rell", "Renata Glasc", "Sett", "Tristana", "Urgot", "Vander", "Vladimir", "Zeri", "Ziggs"];
@@ -244,7 +247,6 @@ function Shop( {buyUnit, level, addGold, seed, stage, xp, addXp}: ShopProps ) {
                   </img>
                 </div> : 
                 <div key={index} className="purchased cursor-pointer flex justify-center items-center">
-                  
                 </div>
               )}
           </div>
