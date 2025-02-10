@@ -1,9 +1,7 @@
 import { Unit } from "../pages/MainPage";
 import "../css/Shop.css"
 import "../css/MainPage.css"
-import { useEffect, useMemo } from "react";
-import seedrandom from 'seedrandom';
-import { levelToXpNeeded, unitToTraits } from "../utils/utils";
+import { levelToOdds, levelToXpNeeded, unitToTraits } from "../utils/utils";
 import { ShopSlot } from "../types";
 
 
@@ -19,31 +17,7 @@ interface ShopProps {
   reroll: () => void;
 }
 
-function Shop( {buyUnit, level,  seed, xp, addXp, shopSlots, reroll}: ShopProps ) {
-
-  useMemo(() => {
-    if (seed !== undefined) {
-      return seedrandom(seed, { global: true });
-    }
-  }, [seed]);
-
-  useEffect(() => {
-    const onKeyDown = (e: { key: string; }) => {
-      if (e.key === 'd') {
-        reroll();
-      } else if (e.key === 'f' && level < 10) {
-        addXp(4);
-      }
-    }
-
-   
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [level, xp]);
-
-
-
-
+function Shop( {buyUnit, level, xp, addXp, shopSlots, reroll}: ShopProps ) {
 
   return (
     <>
@@ -68,19 +42,19 @@ function Shop( {buyUnit, level,  seed, xp, addXp, shopSlots, reroll}: ShopProps 
                           gap-10 items-end bg-gray-800 w-[500px] z-[-1]" id="oddsHolder">
             <div className="text-gray-500 items-end flex">
               <div className="bg-gray-500 circle w-[10px] h-[10px] mb-2 mr-1">
-            </div>20%</div>
+            </div>{levelToOdds(level)[0]}</div>
             <div className="text-green-400 items-end flex">
               <div className="bg-green-400 circle w-[10px] h-[10px] mb-2 mr-1">
-            </div>20%</div>
+            </div>{levelToOdds(level)[1]}</div>
             <div className="text-blue-600 items-end flex">
               <div className="bg-blue-600 triangle w-[10px] h-[10px] mb-2 mr-1">
-            </div>20%</div>
+            </div>{levelToOdds(level)[2]}</div>
             <div className="text-purple-600 items-end flex">
               <div className="bg-purple-600 w-[10px] h-[10px] mb-2 mr-1">
-            </div>20%</div>
+            </div>{levelToOdds(level)[3]}</div>
             <div className="text-yellow-700 items-end flex">
               <div className="bg-yellow-700 pentagon w-[10px] h-[10px] mb-2 mr-1">
-            </div>20%</div>
+            </div>{levelToOdds(level)[4]}</div>
           </div>
         </div>
         <div className="border flex h-32 unselectable">

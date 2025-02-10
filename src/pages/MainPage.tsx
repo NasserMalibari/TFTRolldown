@@ -1,10 +1,11 @@
-import {  useRef, useState } from "react";
+import {  useEffect, useMemo, useRef, useState } from "react";
 import Shop from "../components/Shop";
 import '../css/MainPage.css'
 import React from "react";
 import Info from "../components/Info";
 import { indexToTransformString, levelToXpNeeded, traitLevelToHref, traitToHref, traitToLevel, traitToNumNeeded, unitToHref, unitToTraits } from "../utils/utils";
 import { level, ShopSlot } from "../types";
+import seedrandom from 'seedrandom';
 // TODO: Meta
 
 
@@ -72,6 +73,26 @@ function MainPage() {
   const sixCostChamps = ["Mel", "Viktor", "Warwick"];
 
   const allUnits = [[], oneCostChamps, twoCostChamps, threeCostChamps, fourCostChamps, fiveCostChamps, sixCostChamps];
+
+  useMemo(() => {
+    if (seed !== undefined) {
+      return seedrandom(seed, { global: true });
+    }
+  }, [seed]);
+
+  useEffect(() => {
+    const onKeyDown = (e: { key: string; }) => {
+      if (e.key === 'd') {
+        reroll();
+      } else if (e.key === 'f' && level < 10) {
+        addXp(4);
+      }
+    }
+
+   
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [level, xp]);
 
   const generateUnitCost = () => {
 

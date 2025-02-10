@@ -871,5 +871,33 @@ export function traitToHref(traitName: string, black: boolean): string {
       default:
         return "";
     }
+}
+
+export const levelToOdds = (level: number): string[] => {
+
+  switch (level) {
+    case 1:
+      return ["100%", "0%", "0%", "0%", "0%"];
+    case 2:
+      return ["100%", "0%", "0%", "0%", "0%"];
+    case 3:
+      return ["75%", "25%", "0%", "0%", "0%"];
+    case 4:
+      return ["55%", "30%", "15%", "0%", "0%"];
+    case 5:
+      return ["45%", "33%", "20%", "2%", "0%"];
+    case 6:
+      return ["30%", "40%", "25%", "5%", "0%"];
+    case 7:
+      return ["19%", "30%", "40%", "10%", "1%"];
+    case 8:
+      return ["18%", "25%", "32%", "22%", "3%"];
+    case 9:
+      return ["15%", "20%", "25%", "30%", "10%"];
+    case 10:
+      return ["5%", "10%", "20%", "40%", "25%"];
+    default:
+      return ["0%", "0%", "0%", "0%", "0%"];
+  }
   
 }
