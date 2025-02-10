@@ -6,8 +6,6 @@ import Info from "../components/Info";
 import { indexToTransformString, levelToXpNeeded, traitLevelToHref, traitToHref, traitToLevel, traitToNumNeeded, unitToHref, unitToTraits } from "../utils/utils";
 import { level, ShopSlot } from "../types";
 import seedrandom from 'seedrandom';
-// TODO: Meta
-
 
 export type Unit = {
   name: string;
@@ -15,12 +13,6 @@ export type Unit = {
   starLevel: number;
   traits: string[];
 }
-
-// interface ClonePosition {
-//   x: number;
-//   y: number;
-// }
-
 
 const levelPriority: Record<level, number> = {
   unique: 6,
@@ -53,12 +45,11 @@ function MainPage() {
   const [hovered, setHovered] = useState<boolean[]>(new Array(28).fill(false));
   const [gold, setGold] = useState(0);
   const [level, setLevel] = useState(1);
-  // const [isDragging, setIsDragging] = useState<boolean>(false);
   const isDraggingRef = React.useRef(false);
-  // const [clonePosition, setClonePosition] = useState<ClonePosition>({ x: 0, y: 0 });
   const [clonedGroup, setClonedGroup] = useState<SVGElement  | null>(null);
   const [stage, setStage] = useState<Stage[number]>("1-2");
   const [xp, setXp] = useState(0);
+  const [shouldReroll, setShouldReroll] = useState(false);
 
   const totals = useRef<{ [key: string]: number }>({});
 
@@ -83,6 +74,7 @@ function MainPage() {
   useEffect(() => {
     const onKeyDown = (e: { key: string; }) => {
       if (e.key === 'd') {
+        addGold(-2);
         reroll();
       } else if (e.key === 'f' && level < 10) {
         addXp(4);
@@ -223,9 +215,17 @@ function MainPage() {
   }
 
   const reroll = (): void => {
-    addGold(-2);
+    setShouldReroll(false);
+    // addGold(-2);
     setShopSlots(rollShop());
   }
+
+  
+  useEffect(() => {
+    if (shouldReroll) {
+      reroll();
+    }
+  }, [level, shouldReroll]);
 
   const addXp = (amount: number) => {
     // console.log(`${amount} ${xp} ${level}`)
@@ -312,7 +312,8 @@ function MainPage() {
       }
     });
 
-    reroll();
+    setShouldReroll(true);
+    // reroll();
   }
 
   const decreaseStage = (): void => {

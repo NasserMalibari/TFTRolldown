@@ -17,7 +17,7 @@ interface ShopProps {
   reroll: () => void;
 }
 
-function Shop( {buyUnit, level, xp, addXp, shopSlots, reroll}: ShopProps ) {
+function Shop( {buyUnit, level, xp, addXp, shopSlots, addGold, reroll}: ShopProps ) {
 
   return (
     <>
@@ -68,7 +68,10 @@ function Shop( {buyUnit, level, xp, addXp, shopSlots, reroll}: ShopProps ) {
             </button>
             <button
               className="border h-full flex items-center justify-center"
-              onClick={(reroll)}>
+              onClick={() => {
+                reroll();
+                addGold(-2);
+              }}>
               Reroll
             </button>
           </div>
@@ -83,11 +86,6 @@ function Shop( {buyUnit, level, xp, addXp, shopSlots, reroll}: ShopProps ) {
                     starLevel: 1,
                     traits: unitToTraits(slot.unit),
                   }, index);
-                  // setShopSlots((prev) => {
-                  //   const newShopSlots = [...prev];
-                  //   newShopSlots[index].purchased = true;
-                  //   return newShopSlots;              
-                  // });
                   }}
                 >
                   <img className="h-full w-full bg-cover" 
