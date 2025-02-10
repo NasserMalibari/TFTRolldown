@@ -41,8 +41,8 @@ export type TraitLevel = {
 
 function MainPage() {
 
-  const [boardState, setBoardState] = useState<(Unit | null)[]>(new Array(28).fill(null));
-  const [hovered, setHovered] = useState<boolean[]>(new Array(28).fill(false));
+  const [boardState, setBoardState] = useState<(Unit | null)[]>(new Array(37).fill(null));
+  const [hovered, setHovered] = useState<boolean[]>(new Array(37).fill(false));
   const [gold, setGold] = useState(0);
   const [level, setLevel] = useState(1);
   const isDraggingRef = React.useRef(false);
@@ -88,7 +88,6 @@ function MainPage() {
 
   const generateUnitCost = () => {
 
-    // const ran_number = Math.random();
     const ran_number = Math.random();
 
     switch (level) {
@@ -203,7 +202,6 @@ function MainPage() {
     if (stageToSixCost(stage, level)) {
       const ran_number = Math.random();
       const randomIdx = Math.floor(ran_number * allUnits[6]?.length);
-      console.log('changing to 6 cost');
       returnLst[4] = ({
         purchased: false,
         cost: 6,
@@ -228,7 +226,6 @@ function MainPage() {
   }, [level, shouldReroll]);
 
   const addXp = (amount: number) => {
-    // console.log(`${amount} ${xp} ${level}`)
     let currLevel = level;
     let currXp = xp + amount;
 
@@ -377,25 +374,24 @@ function MainPage() {
       totals.current[soldUnit.name] -= 9;
     } 
     
-    const numLeft = totals.current[soldUnit.name];
-    console.log(`numLeft = ${numLeft}`);
+    // const numLeft = totals.current[soldUnit.name];
     
-    if (numLeft <= 0) {
-      // remove from trait list
-      const newTraits = traits;
-      for (const trait of soldUnit.traits) {
-        const i = newTraits.findIndex((t) => t.name === trait);
-        if (i !== -1) {
-          newTraits[i].numActivated--;
-          newTraits[i].numNeeded = traitToNumNeeded(trait, newTraits[i].numActivated);
-          newTraits[i].level = traitToLevel(trait, newTraits[i].numActivated);
-          if (newTraits[i].numActivated === 0) {
-            newTraits.splice(i, 1);
-          }
-        }
-      }
-      setTraits(newTraits);
-    }
+    // if (numLeft <= 0) {
+    //   // remove from trait list
+    //   const newTraits = traits;
+    //   for (const trait of soldUnit.traits) {
+    //     const i = newTraits.findIndex((t) => t.name === trait);
+    //     if (i !== -1 && i < 28) {
+    //       newTraits[i].numActivated--;
+    //       newTraits[i].numNeeded = traitToNumNeeded(trait, newTraits[i].numActivated);
+    //       newTraits[i].level = traitToLevel(trait, newTraits[i].numActivated);
+    //       if (newTraits[i].numActivated === 0) {
+    //         newTraits.splice(i, 1);
+    //       }
+    //     }
+    //   }
+    //   setTraits(newTraits);
+    // }
 
     setBoardState((prevBoardState) => {
       const newBoardState = [...prevBoardState];
@@ -495,6 +491,47 @@ function MainPage() {
     document.addEventListener("mouseup", onMouseUp);
   };
 
+  useEffect(() => {
+    calculateTraits();
+  }, [boardState])
+
+  const calculateTraits = () => {
+    const uniqueUnits = new Set<string>();
+    const newTraits: TraitLevel[] = [];
+
+    for (const hex of boardState.slice(0, 28)) {
+      if (hex === null) {
+        continue;
+      }
+      uniqueUnits.add(hex.name);
+    }
+
+    for (const unit of uniqueUnits) {
+      for (const trait of unitToTraits(unit)) {
+        // add it to traitlevels
+        const i = newTraits.findIndex((t) => t.name === trait);
+        if (i !== -1) {
+          newTraits[i].numActivated++;
+          newTraits[i].numNeeded = traitToNumNeeded(trait, newTraits[i].numActivated);
+          newTraits[i].level = traitToLevel(trait, newTraits[i].numActivated);
+        } else {
+          newTraits.push({
+            name: trait,
+            numActivated: 1,
+            numNeeded: traitToNumNeeded(trait, 1),
+            level: traitToLevel(trait, 1)
+          })
+        }
+      }
+    }
+
+    newTraits.sort((a, b) => {
+      if (levelPriority[a.level] > levelPriority[b.level]) return -1;
+      if (levelPriority[a.level] < levelPriority[b.level]) return 1;
+      return b.numActivated - a.numActivated;
+    })
+    setTraits(newTraits);
+  }
 
   function buyUnit(unit: Unit, index: number): void {
     
@@ -510,33 +547,6 @@ function MainPage() {
       totals.current[unit.name] = 1;
     }
 
-    const newTraits: TraitLevel[] = [];
-    for (const unit in totals.current) {
-      if (totals.current[unit] > 0) {
-        for (const trait of unitToTraits(unit)) {
-          // add it to traitlevels
-          const i = newTraits.findIndex((t) => t.name === trait);
-          if (i !== -1) {
-            newTraits[i].numActivated++;
-            newTraits[i].numNeeded = traitToNumNeeded(trait, newTraits[i].numActivated);
-            newTraits[i].level = traitToLevel(trait, newTraits[i].numActivated);
-          } else {
-            newTraits.push({
-              name: trait,
-              numActivated: 1,
-              numNeeded: traitToNumNeeded(trait, 1),
-              level: traitToLevel(trait, 1)
-            })
-          }
-        }
-      }
-      newTraits.sort((a, b) => {
-        if (levelPriority[a.level] > levelPriority[b.level]) return -1;
-        if (levelPriority[a.level] < levelPriority[b.level]) return 1;
-        return b.numActivated - a.numActivated;
-      })
-      setTraits(newTraits);
-    }
     // set the traits
 
     setGold((prev) => Math.max(prev - unit.cost, 0));
@@ -615,18 +625,23 @@ function MainPage() {
         return updatedBoardState;
       });
     } else {
-      // unit.starLevel = 2;
       setBoardState((prevBoardState) => {
+        // try to fill a spot on the bench (indexes 28 onward)
         const updatedBoard = [...prevBoardState];
-        const firstNullIndex = updatedBoard.findIndex((element) => element === null); // Find first null element
+        const firstNullIndex = updatedBoard.slice(28).findIndex((element) => element === null); // Find first null element
         if (firstNullIndex !== -1) {
-          updatedBoard[firstNullIndex] = unit; // Update the first null position
+          updatedBoard[firstNullIndex + 28] = unit; // Update the first null position
+        } else {
+          // if bench full, place on board
+          const firstBoardNullIndex = updatedBoard.findIndex((element) => element === null);
+          if (firstBoardNullIndex !== -1) {
+            updatedBoard[firstBoardNullIndex] = unit;
+          }
         }
         return updatedBoard;
       });
     }
   }
-
 
   function moveUnit(from: number, to: number) {
 
@@ -642,8 +657,8 @@ function MainPage() {
   }
   
   const clearBoard = () => {
-    setBoardState(new Array(28).fill(null));
-    setHovered(new Array(28).fill(false));
+    setBoardState(new Array(37).fill(null));
+    setHovered(new Array(37).fill(false));
     setTraits([]);
     totals.current = {};
   }
@@ -652,8 +667,8 @@ function MainPage() {
     setGold(0);
     setLevel(1);
     setXp(0);
-    setBoardState(new Array(28).fill(null));
-    setHovered(new Array(28).fill(false));
+    setBoardState(new Array(37).fill(null));
+    setHovered(new Array(37).fill(false));
     setStage("1-2");
     setSeed(undefined);
     setShopSlots([]);
@@ -693,27 +708,15 @@ function MainPage() {
             )}
           </div>
           <div className="border defaultBG" id="board">
-                  {/* Render the clone group */}
                 {clonedGroup && (
-                  // clonedGroupElementRef.current
                   <></>
-                  // <div
-                  //   style={{
-                  //     position: "absolute",
-                  //     left: `${clonePosition.x}px`,
-                  //     top: `${clonePosition.y}px`,
-                  //     height: '100px',
-                  //     width: '100px',
-                  //     backgroundColor: 'blue',
-                  //     pointerEvents: "none",
-                  //   }}
-                  // />
                 )}
             <svg className="w-full md:w-[684px] xl:w-[760px]" viewBox="0 0 760 420">
               <g transform="translate(22, 14)">
                 {boardState.map((unit, index) =>
+                  index < 28 && (
                   unit ? (
-                      <g  className="hex" key={index} id={`hex${index}`} transform={indexToTransformString(index)}
+                      <g className="hex" key={index} id={`hex${index}`} transform={indexToTransformString(index)}
                       onMouseDown={handleMouseDown}>
                         <path
                           d="M48.49742261192856 0L96.99484522385713 28L96.99484522385713 84L48.49742261192856 112L0 84L0 28Z"
@@ -793,12 +796,104 @@ function MainPage() {
                         // fill="rgba(0, 0, 0, 0.6)"
                         fill={hovered[index] ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.6)"}
                       ></path>
-                    </g>
+                    </g>)
                   )
                 )}
               </g>
             </svg>
           </div>
+        </div>
+        <div id="bench">
+        <svg className="w-full md:w-[800px] md:ml-32 xl:ml-0 xl:w-[1000px]" viewBox="0 0 1000 130">
+          <g transform="translate(22, 14)">
+            {boardState.map((unit, index) =>
+              index >= 28 && (
+              unit ? (
+                  <g className="hex" key={index} id={`hex${index}`} transform={indexToTransformString(index)}
+                  onMouseDown={handleMouseDown}>
+                    <path
+                      d="M48.49742261192856 0L96.99484522385713 28L96.99484522385713 84L48.49742261192856 112L0 84L0 28Z"
+                      fill="transparent"
+                      transform="translate(-5.5, -6)"
+                    ></path>
+                    <path
+                      d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
+                      fill="rgba(0, 0, 0, 0.6)"
+                    ></path>
+                    <g>
+                      <g>
+                      <image height="98" 
+                      href={unitToHref(unit.name)}
+                      width="98" 
+                      clipPath="polygon(50% 0%, 93.301270189% 25%, 93.301270189% 75%, 50% 100%, 6.698729811% 75%, 6.698729811% 25%)" filter="" x="-5" y="2">
+                      </image>
+                      </g>
+                      <path
+                        d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
+                        fill="transparent"
+                        stroke="rgba(187, 187, 187, 0.75)" 
+                        // stroke="rgba(355, 0, 0, 0.75)"// this is red
+                        strokeWidth="3.5"
+                        transform="translate(0.5, 0.5)"
+                      ></path>
+                    </g>
+                    {unit.starLevel == 2 && 
+                    <g transform="translate(42, 0)">
+                      <g width="22.056631892697467" transform="translate(-22.056631892697467, 0)">
+                        <polygon fill="#add1e4" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                      </g>
+                      <g width="22.056631892697467" transform="translate(0, 0)" >
+                        <polygon fill="#add1e4" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                      </g>
+                    </g>
+                    }
+                    {unit.starLevel == 3 && 
+                      <g transform="translate(42, 0)">
+                        <g width="22.056631892697467" transform="translate(-33.0849478390462, 0)">
+                          <polygon fill="#dcba11" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                        </g>
+                        <g width="22.056631892697467" transform="translate(-11.028315946348734, 0)">
+                          <polygon fill="#dcba11" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                        </g>
+                        <g width="22.056631892697467" transform="translate(11.028315946348734, 0)">
+                          <polygon fill="#dcba11" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
+                        </g>
+                      </g>
+                    }
+                  </g>
+              ) : (
+                // empty hex
+                <g key={index} className="hex" id={`hex${index}`} transform={indexToTransformString(index)}>
+                  <path
+                    d="M48.49742261192856 0L96.99484522385713 28L96.99484522385713 84L48.49742261192856 112L0 84L0 28Z"
+                    fill="transparent"
+                    transform="translate(-5.5, -6)"
+                  ></path>
+                  <path
+                    onMouseOver={() => 
+                      isDraggingRef.current &&
+                      setHovered((prev) => {
+                      const newHovered = [...prev];
+                      newHovered[index] = true;
+                      return newHovered;
+                    })}
+                    onMouseLeave={
+                      () => 
+                        setHovered((prev) => {
+                        const newHovered = [...prev];
+                        newHovered[index] = false;
+                        return newHovered;
+                      })
+                    }
+                    d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
+                    // fill="rgba(0, 0, 0, 0.6)"
+                    fill={hovered[index] ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.6)"}
+                  ></path>
+                </g>)
+              )
+            )}
+          </g>
+          </svg>
         </div>
         <Shop buyUnit={buyUnit} level={level} addGold={addGold} seed={seed} stage={stage} xp={xp} addXp={addXp} shopSlots={shopSlots}
               reroll={reroll}
@@ -1009,7 +1104,6 @@ const stageToSixCost = (stage: string, level: number): boolean => {
       }
       return false;
     case "7-7":
-      console.log(ran_number);
       if (ran_number <= 0.00098) {
         return true;
       } else if (isLevelTen && ran_number <= 0.0208) {

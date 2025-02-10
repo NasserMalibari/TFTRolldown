@@ -22,7 +22,7 @@ function Shop( {buyUnit, level, xp, addXp, shopSlots, addGold, reroll}: ShopProp
   return (
     <>
       <div className="flex flex-col">
-        <div className="flex items-end" id="aboveShop">
+        <div className="flex items-end unselectable" id="aboveShop">
           <div className="flex flex-col w-[150px]  rightTrapeze defaultBG" id="xpSection">
             <div className="flex justify-between">
               <div className="">Lvl. {level}</div>

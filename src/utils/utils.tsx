@@ -59,7 +59,25 @@ export function indexToTransformString(index: number): string {
         return "translate(480,4)";
       case 27:
         return "translate(576,4)";
-      default:
+      case 28:
+          return "translate(0,4)";
+      case 29:
+          return "translate(96,4)";
+      case 30:
+          return "translate(192,4)";
+      case 31:
+          return "translate(288,4)";
+      case 32:
+          return "translate(384,4)";      
+      case 33:
+          return "translate(480,4)";
+      case 34:
+          return "translate(576,4)";
+      case 35:
+          return "translate(672,4)";      
+      case 36:
+          return "translate(768,4)";
+          default:
         return "";
     }   
 }
