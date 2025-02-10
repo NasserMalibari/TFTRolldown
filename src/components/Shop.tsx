@@ -1,8 +1,9 @@
-import { levelToXpNeeded, Unit, unitToTraits } from "../pages/MainPage";
+import { Unit } from "../pages/MainPage";
 import "../css/Shop.css"
 import "../css/MainPage.css"
 import { useEffect, useMemo, useState } from "react";
 import seedrandom from 'seedrandom';
+import { levelToXpNeeded, unitToTraits } from "../utils/utils";
 
 
 interface ShopProps {
@@ -190,8 +191,8 @@ function Shop( {buyUnit, level, addGold, seed, stage, xp, addXp}: ShopProps ) {
   return (
     <>
       <div className="flex flex-col">
-        <div className="flex" id="aboveShop">
-          <div className="flex flex-col w-[150px] border-2 border-solid rightTrapeze defaultBG" id="xpSection">
+        <div className="flex items-end" id="aboveShop">
+          <div className="flex flex-col w-[150px]  rightTrapeze defaultBG" id="xpSection">
             <div className="flex justify-between">
               <div className="">Lvl. {level}</div>
               {level < 10 && 
@@ -205,6 +206,24 @@ function Shop( {buyUnit, level, addGold, seed, stage, xp, addXp}: ShopProps ) {
               <progress value={xp / levelToXpNeeded(level)} className="w-[80%] ml-1"/>
             </div>
 
+          </div>
+          <div className="flex pl-10 justify-start relative left-[-22px] h-[30px] opacity-90
+                          gap-10 items-end bg-gray-800 w-[500px] z-[-1]" id="oddsHolder">
+            <div className="text-gray-500 items-end flex">
+              <div className="bg-gray-500 circle w-[10px] h-[10px] mb-2 mr-1">
+            </div>20%</div>
+            <div className="text-green-400 items-end flex">
+              <div className="bg-green-400 circle w-[10px] h-[10px] mb-2 mr-1">
+            </div>20%</div>
+            <div className="text-blue-600 items-end flex">
+              <div className="bg-blue-600 triangle w-[10px] h-[10px] mb-2 mr-1">
+            </div>20%</div>
+            <div className="text-purple-600 items-end flex">
+              <div className="bg-purple-600 w-[10px] h-[10px] mb-2 mr-1">
+            </div>20%</div>
+            <div className="text-yellow-700 items-end flex">
+              <div className="bg-yellow-700 pentagon w-[10px] h-[10px] mb-2 mr-1">
+            </div>20%</div>
           </div>
         </div>
         <div className="border flex h-32 unselectable">
