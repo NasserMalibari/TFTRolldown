@@ -919,3 +919,194 @@ export const levelToOdds = (level: number): string[] => {
   }
   
 }
+
+export const stageToSixCost = (stage: string, level: number): boolean => {
+  
+  const isLevelTen = (level === 10);
+  const ran_number = Math.random();
+
+  switch (stage) {
+    case "1-1":
+      return false;
+    case "1-2":
+      return false;
+    case "1-3":
+      return false;
+    case "1-4":
+      return false;
+    case "2-1":
+      return false;
+    case "2-2":
+      return false;
+    case "2-3":
+      return false;
+    case "2-5":
+      return false;
+    case "2-6":
+      return false;
+    case "2-7":
+      return false;
+    case "3-1":
+      return false;
+    case "3-2":
+      return false;
+    case "3-3":
+      return false;
+    case "3-5":
+      return false;
+    case "3-6":
+      return false;
+    case "3-7":
+      return false;
+    case "4-1":
+      return false;
+    case "4-2":
+      return false;
+    case "4-3":
+      return false;
+    case "4-5":
+      return false;
+    case "4-6":
+      if (ran_number <= 0.0016) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0126) {
+        return true;
+      }
+      return false;
+    case "4-7":
+      if (ran_number <= 0.0016) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0126) {
+        return true;
+      }
+      return false;
+    case "5-1":
+      if (ran_number <= 0.0019) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0129) {
+        return true;
+      }
+      return false;
+    case "5-2":
+      if (ran_number <= 0.0022) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0132) {
+        return true;
+      }
+      return false;
+    case "5-3":
+      if (ran_number <= 0.0025) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0135) {
+        return true;
+      }
+      return false;
+    case "5-5":
+      if (ran_number <= 0.0028) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0138) {
+        return true;
+      }
+      return false;
+    case "5-6":
+      if (ran_number <= 0.0031) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0141) {
+        return true;
+      }
+      return false;
+    case "5-7":
+      if (ran_number <= 0.0034) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0144) {
+        return true;
+      }
+      return false;
+    case "6-1":
+      if (ran_number <= 0.0038) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0148) {
+        return true;
+      }
+      return false;
+    case "6-2":
+      if (ran_number <= 0.0042) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0152) {
+        return true;
+      }
+      return false;
+    case "6-3":
+      if (ran_number <= 0.0046) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0156) {
+        return true;
+      }
+      return false;
+    case "6-5":
+      if (ran_number <= 0.0050) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0160) {
+        return true;
+      }
+      return false;
+    case "6-6":
+      if (ran_number <= 0.0054) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0164) {
+        return true;
+      }
+      return false;
+    case "6-7":
+      if (ran_number <= 0.0054) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0168) {
+        return true;
+      }
+      return false;
+    case "7-1":
+      if (ran_number <= 0.0078) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0188) {
+        return true;
+      }
+      return false;
+    case "7-2":
+      if (ran_number <= 0.0098) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0208) {
+        return true;
+      }
+      return false;
+    case "7-3":
+      if (ran_number <= 0.0098) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0208) {
+        return true;
+      }
+      return false;
+    case "7-5":
+      if (ran_number <= 0.0098) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0208) {
+        return true;
+      }
+      return false;
+    case "7-6":
+      if (ran_number <= 0.00098) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0208) {
+        return true;
+      }
+      return false;
+    case "7-7":
+      if (ran_number <= 0.00098) {
+        return true;
+      } else if (isLevelTen && ran_number <= 0.0208) {
+        return true;
+      }
+      return false;
+    default:
+      return false; // Default case for any unexpected stage
+  }
+}

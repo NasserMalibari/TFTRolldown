@@ -3,9 +3,10 @@ import Shop from "../components/Shop";
 import '../css/MainPage.css'
 import React from "react";
 import Info from "../components/Info";
-import { indexToTransformString, levelToXpNeeded, traitLevelToHref, traitToHref, traitToLevel, traitToNumNeeded, unitToHref, unitToTraits } from "../utils/utils";
+import { indexToTransformString, levelToXpNeeded, stageToSixCost, traitLevelToHref, traitToHref, traitToLevel, traitToNumNeeded, unitToHref, unitToTraits } from "../utils/utils";
 import { level, ShopSlot } from "../types";
 import seedrandom from 'seedrandom';
+import Board from "../components/Board";
 
 export type Unit = {
   name: string;
@@ -46,7 +47,7 @@ function MainPage() {
   const [gold, setGold] = useState(0);
   const [level, setLevel] = useState(1);
   const isDraggingRef = React.useRef(false);
-  const [clonedGroup, setClonedGroup] = useState<SVGElement  | null>(null);
+  // const [clonedGroup, setClonedGroup] = useState<SVGElement  | null>(null);
   const [stage, setStage] = useState<Stage[number]>("1-2");
   const [xp, setXp] = useState(0);
   const [shouldReroll, setShouldReroll] = useState(false);
@@ -310,7 +311,6 @@ function MainPage() {
     });
 
     setShouldReroll(true);
-    // reroll();
   }
 
   const decreaseStage = (): void => {
@@ -374,24 +374,6 @@ function MainPage() {
       totals.current[soldUnit.name] -= 9;
     } 
     
-    // const numLeft = totals.current[soldUnit.name];
-    
-    // if (numLeft <= 0) {
-    //   // remove from trait list
-    //   const newTraits = traits;
-    //   for (const trait of soldUnit.traits) {
-    //     const i = newTraits.findIndex((t) => t.name === trait);
-    //     if (i !== -1 && i < 28) {
-    //       newTraits[i].numActivated--;
-    //       newTraits[i].numNeeded = traitToNumNeeded(trait, newTraits[i].numActivated);
-    //       newTraits[i].level = traitToLevel(trait, newTraits[i].numActivated);
-    //       if (newTraits[i].numActivated === 0) {
-    //         newTraits.splice(i, 1);
-    //       }
-    //     }
-    //   }
-    //   setTraits(newTraits);
-    // }
 
     setBoardState((prevBoardState) => {
       const newBoardState = [...prevBoardState];
@@ -427,10 +409,10 @@ function MainPage() {
       return;
     }
   
-    const clonedGroupElement = groupElement.cloneNode(true) as SVGGElement;
+    // const clonedGroupElement = groupElement.cloneNode(true) as SVGGElement;
     // Update refs
     isDraggingRef.current = true;
-    setClonedGroup(clonedGroupElement);
+    // setClonedGroup(clonedGroupElement);
     // setIsDragging(true);
   
     // setClonePosition({
@@ -481,7 +463,7 @@ function MainPage() {
       });
       moveUnit(fromHexID, toHexID);
 
-      setClonedGroup(null);
+      // setClonedGroup(null);
   
       // document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
@@ -707,101 +689,9 @@ function MainPage() {
               </div>
             )}
           </div>
-          <div className="border defaultBG" id="board">
-                {clonedGroup && (
-                  <></>
-                )}
-            <svg className="w-full md:w-[684px] xl:w-[760px]" viewBox="0 0 760 420">
-              <g transform="translate(22, 14)">
-                {boardState.map((unit, index) =>
-                  index < 28 && (
-                  unit ? (
-                      <g className="hex" key={index} id={`hex${index}`} transform={indexToTransformString(index)}
-                      onMouseDown={handleMouseDown}>
-                        <path
-                          d="M48.49742261192856 0L96.99484522385713 28L96.99484522385713 84L48.49742261192856 112L0 84L0 28Z"
-                          fill="transparent"
-                          transform="translate(-5.5, -6)"
-                        ></path>
-                        <path
-                          d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
-                          fill="rgba(0, 0, 0, 0.6)"
-                        ></path>
-                        <g>
-                          <g>
-                          <image height="98" 
-                          href={unitToHref(unit.name)}
-                          width="98" 
-                          clipPath="polygon(50% 0%, 93.301270189% 25%, 93.301270189% 75%, 50% 100%, 6.698729811% 75%, 6.698729811% 25%)" filter="" x="-5" y="2">
-                          </image>
-                          </g>
-                          <path
-                            d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
-                            fill="transparent"
-                            stroke="rgba(187, 187, 187, 0.75)" 
-                            // stroke="rgba(355, 0, 0, 0.75)"// this is red
-                            strokeWidth="3.5"
-                            transform="translate(0.5, 0.5)"
-                          ></path>
-                        </g>
-                        {unit.starLevel == 2 && 
-                        <g transform="translate(42, 0)">
-                          <g width="22.056631892697467" transform="translate(-22.056631892697467, 0)">
-                            <polygon fill="#add1e4" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
-                          </g>
-                          <g width="22.056631892697467" transform="translate(0, 0)" >
-                            <polygon fill="#add1e4" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
-                          </g>
-                        </g>
-                        }
-                        {unit.starLevel == 3 && 
-                          <g transform="translate(42, 0)">
-                            <g width="22.056631892697467" transform="translate(-33.0849478390462, 0)">
-                              <polygon fill="#dcba11" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
-                            </g>
-                            <g width="22.056631892697467" transform="translate(-11.028315946348734, 0)">
-                              <polygon fill="#dcba11" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
-                            </g>
-                            <g width="22.056631892697467" transform="translate(11.028315946348734, 0)">
-                              <polygon fill="#dcba11" stroke="#111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="star" points="11.028315946348734,0,14.629583430174119,6.071596490830758,21.516867690885448,7.620378899590744,16.85528913775802,12.921614305658727,17.51059741723443,19.95041096628109,11.028315946348734,17.155158138764698,4.54603447546304,19.95041096628109,5.201342754939447,12.921614305658728,0.5397642018120159,7.620378899590746,7.427048462523347,6.071596490830759"></polygon>
-                            </g>
-                          </g>
-                        }
-                      </g>
-                  ) : (
-                    // empty hex
-                    <g key={index} className="hex" id={`hex${index}`} transform={indexToTransformString(index)}>
-                      <path
-                        d="M48.49742261192856 0L96.99484522385713 28L96.99484522385713 84L48.49742261192856 112L0 84L0 28Z"
-                        fill="transparent"
-                        transform="translate(-5.5, -6)"
-                      ></path>
-                      <path
-                        onMouseOver={() => 
-                          isDraggingRef.current &&
-                          setHovered((prev) => {
-                          const newHovered = [...prev];
-                          newHovered[index] = true;
-                          return newHovered;
-                        })}
-                        onMouseLeave={
-                          () => 
-                            setHovered((prev) => {
-                            const newHovered = [...prev];
-                            newHovered[index] = false;
-                            return newHovered;
-                          })
-                        }
-                        d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
-                        // fill="rgba(0, 0, 0, 0.6)"
-                        fill={hovered[index] ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.6)"}
-                      ></path>
-                    </g>)
-                  )
-                )}
-              </g>
-            </svg>
-          </div>
+          <Board boardState={boardState} hovered={hovered} setHovered={setHovered}
+                 isDraggingRef={isDraggingRef} handleMouseDown={handleMouseDown}
+          />
         </div>
         <div id="bench">
         <svg className="w-full md:w-[800px] md:ml-32 xl:ml-0 xl:w-[1000px]" viewBox="0 0 1000 130">
@@ -886,7 +776,6 @@ function MainPage() {
                       })
                     }
                     d="M43.30127018922193 0L86.60254037844386 25L86.60254037844386 75L43.30127018922193 100L0 75L0 25Z"
-                    // fill="rgba(0, 0, 0, 0.6)"
                     fill={hovered[index] ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.6)"}
                   ></path>
                 </g>)
@@ -924,193 +813,3 @@ function extractHexID(elementID: string): number {
   return hexID
 }
 
-const stageToSixCost = (stage: string, level: number): boolean => {
-  
-  const isLevelTen = (level === 10);
-  const ran_number = Math.random();
-
-  switch (stage) {
-    case "1-1":
-      return false;
-    case "1-2":
-      return false;
-    case "1-3":
-      return false;
-    case "1-4":
-      return false;
-    case "2-1":
-      return false;
-    case "2-2":
-      return false;
-    case "2-3":
-      return false;
-    case "2-5":
-      return false;
-    case "2-6":
-      return false;
-    case "2-7":
-      return false;
-    case "3-1":
-      return false;
-    case "3-2":
-      return false;
-    case "3-3":
-      return false;
-    case "3-5":
-      return false;
-    case "3-6":
-      return false;
-    case "3-7":
-      return false;
-    case "4-1":
-      return false;
-    case "4-2":
-      return false;
-    case "4-3":
-      return false;
-    case "4-5":
-      return false;
-    case "4-6":
-      if (ran_number <= 0.0016) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0126) {
-        return true;
-      }
-      return false;
-    case "4-7":
-      if (ran_number <= 0.0016) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0126) {
-        return true;
-      }
-      return false;
-    case "5-1":
-      if (ran_number <= 0.0019) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0129) {
-        return true;
-      }
-      return false;
-    case "5-2":
-      if (ran_number <= 0.0022) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0132) {
-        return true;
-      }
-      return false;
-    case "5-3":
-      if (ran_number <= 0.0025) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0135) {
-        return true;
-      }
-      return false;
-    case "5-5":
-      if (ran_number <= 0.0028) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0138) {
-        return true;
-      }
-      return false;
-    case "5-6":
-      if (ran_number <= 0.0031) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0141) {
-        return true;
-      }
-      return false;
-    case "5-7":
-      if (ran_number <= 0.0034) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0144) {
-        return true;
-      }
-      return false;
-    case "6-1":
-      if (ran_number <= 0.0038) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0148) {
-        return true;
-      }
-      return false;
-    case "6-2":
-      if (ran_number <= 0.0042) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0152) {
-        return true;
-      }
-      return false;
-    case "6-3":
-      if (ran_number <= 0.0046) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0156) {
-        return true;
-      }
-      return false;
-    case "6-5":
-      if (ran_number <= 0.0050) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0160) {
-        return true;
-      }
-      return false;
-    case "6-6":
-      if (ran_number <= 0.0054) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0164) {
-        return true;
-      }
-      return false;
-    case "6-7":
-      if (ran_number <= 0.0054) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0168) {
-        return true;
-      }
-      return false;
-    case "7-1":
-      if (ran_number <= 0.0078) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0188) {
-        return true;
-      }
-      return false;
-    case "7-2":
-      if (ran_number <= 0.0098) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0208) {
-        return true;
-      }
-      return false;
-    case "7-3":
-      if (ran_number <= 0.0098) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0208) {
-        return true;
-      }
-      return false;
-    case "7-5":
-      if (ran_number <= 0.0098) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0208) {
-        return true;
-      }
-      return false;
-    case "7-6":
-      if (ran_number <= 0.00098) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0208) {
-        return true;
-      }
-      return false;
-    case "7-7":
-      if (ran_number <= 0.00098) {
-        return true;
-      } else if (isLevelTen && ran_number <= 0.0208) {
-        return true;
-      }
-      return false;
-    default:
-      return false; // Default case for any unexpected stage
-  }
-}
